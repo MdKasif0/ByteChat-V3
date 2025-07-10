@@ -175,6 +175,16 @@ export function PeerProvider({ children }: { children: ReactNode }) {
             return newCalls;
         });
     }, [getMedia]);
+    
+    const acceptCallFromUrl = useCallback((callId: string) => {
+        const call = incomingCalls[callId];
+        if (call) {
+            answerCall(call);
+        } else {
+            setPendingAnswerCallId(callId);
+        }
+    }, [incomingCalls, answerCall]);
+
 
     useEffect(() => {
         if (!userProfile?.peerId || peerRef.current || !PeerConstructor) return;
@@ -342,16 +352,6 @@ export function PeerProvider({ children }: { children: ReactNode }) {
             });
         });
     };
-
-    const acceptCallFromUrl = useCallback((callId: string) => {
-        const call = incomingCalls[callId];
-        if (call) {
-            answerCall(call);
-        } else {
-            setPendingAnswerCallId(callId);
-        }
-    }, [incomingCalls, answerCall]);
-
 
     useEffect(() => {
         if (!activeCall) return;

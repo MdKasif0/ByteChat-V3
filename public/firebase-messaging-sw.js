@@ -1,83 +1,78 @@
 
-// Check if Firebase has already been initialized
-if (typeof self.firebase === 'undefined' || !self.firebase.apps.length) {
-    importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
-    importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+// Give the service worker access to Firebase Messaging.
+// Note that you can only use Firebase Messaging here, other Firebase libraries
+// are not available in the service worker.
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
-    const firebaseConfig = {
-        apiKey: "BIBeOCAb1yHzAJh7mAcJUTYHvfxDRAdLR24U0a3pul-XGAGlAywC83vd0P4UhacHq0Z55pSWmnuYgrXMD5Fj45o",
-        authDomain: "bytechat-9fb93.firebaseapp.com",
-        projectId: "bytechat-9fb93",
-        storageBucket: "bytechat-9fb93.appspot.com",
-        messagingSenderId: "1052348941959",
-        appId: "1:1052348941959:web:d271424b81cf71f4be18c1",
-    };
+const firebaseConfig = {
+  apiKey: "PLACEHOLDER_API_KEY",
+  authDomain: "PLACEHOLDER_AUTH_DOMAIN",
+  projectId: "PLACEHOLDER_PROJECT_ID",
+  storageBucket: "PLACEHOLDER_STORAGE_BUCKET",
+  messagingSenderId: "PLACEHOLDER_MESSAGING_SENDER_ID",
+  appId: "PLACEHOLDER_APP_ID",
+};
 
-    self.firebase.initializeApp(firebaseConfig);
-}
+// Listen for the 'message' event from the main thread to receive the config
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SET_FIREBASE_CONFIG') {
+    firebase.initializeApp(event.data.config);
+  }
+});
 
-const messaging = self.firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-    console.log('[firebase-messaging-sw.js] Received background message ', payload);
+self.addEventListener('push', (event) => {
+    const payload = event.data.json();
     const notificationData = payload.data;
-    const notificationTitle = notificationData.title;
-    let actions = [];
-    if (notificationData.actions) {
-        try {
-            actions = JSON.parse(notificationData.actions);
-        } catch (e) {
-            console.error("Error parsing actions: ", e);
-        }
-    }
 
-    const notificationOptions = {
+    const title = notificationData.title || 'New Message';
+    const options = {
         body: notificationData.body,
-        icon: '/bytechat-logo-192.png',
-        badge: '/bytechat-badge-72.png',
-        tag: notificationData.tag,
-        actions: actions,
+        icon: notificationData.icon || '/bytechat-logo-192.png',
+        badge: '/bytechat-badge.png',
         data: {
             url: notificationData.url,
             callId: notificationData.callId,
         },
+        actions: notificationData.actions ? JSON.parse(notificationData.actions) : [],
     };
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
+    event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const notificationData = event.notification.data;
 
-    const promiseChain = (async () => {
-        if (event.action === 'decline-call' && notificationData.callId) {
-            // Silently decline the call in the background
-            try {
-                await fetch(`/api/calls/${notificationData.callId}/decline`, { method: 'POST' });
-            } catch (e) {
-                console.error('Failed to decline call:', e);
-            }
-        } else if (event.action === 'accept-call' || !event.action) {
-             // Default click or 'Accept' action
-            const urlToOpen = new URL(notificationData.url, self.location.origin).href;
-            const clientsToFocus = await self.clients.matchAll({
-                type: 'window',
-                includeUncontrolled: true,
-            });
+    const urlToOpen = event.notification.data.url;
+    const callId = event.notification.data.callId;
 
-            const client = clientsToFocus.find(c => new URL(c.url).pathname === new URL(urlToOpen).pathname);
-
-            if (client) {
-                await client.focus();
-                // If the client is already open, we might need to send it a message
-                // to let it know to answer the call immediately. For now, focus is enough.
-                client.navigate(urlToOpen);
-            } else if (self.clients.openWindow) {
-                await self.clients.openWindow(urlToOpen);
-            }
-        }
-    })();
-
-    event.waitUntil(promiseChain);
+    if (event.action === 'decline-call' && callId) {
+        // Silently decline the call in the background
+        event.waitUntil(
+            fetch(`/api/calls/${callId}/decline`, {
+                method: 'POST',
+            })
+        );
+    } else {
+        // Default action or 'accept-call'
+        event.waitUntil(
+            clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+                // Check if there is already a window/tab open with the target URL
+                let-client-is-focused = false;
+                for (let i = 0; i < windowClients.length; i++) {
+                    const client = windowClients[i];
+                    if (client.url === urlToOpen && 'focus' in client) {
+                        client.focus();
+                        client-is-focused = true;
+                        break;
+                    }
+                }
+                // If not, open a new one
+                if (!client-is-focused && clients.openWindow) {
+                    return clients.openWindow(urlToOpen);
+                }
+            })
+        );
+    }
 });

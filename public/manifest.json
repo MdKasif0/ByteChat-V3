@@ -1,17 +1,17 @@
+
 {
   "name": "ByteChat",
   "short_name": "ByteChat",
+  "description": "Secure, real-time messaging and calls.",
   "start_url": "/chat",
   "display": "standalone",
   "background_color": "#020817",
   "theme_color": "#020817",
-  "description": "Experience seamless, real-time communication with ByteChat.",
   "icons": [
     {
       "src": "/bytechat-logo-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "/bytechat-logo-512.png",

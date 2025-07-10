@@ -5,7 +5,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { useRouter, usePathname } from 'next/navigation';
-import { auth, db, firebaseInitialized, messaging } from '@/lib/firebase';
+import { auth, db, firebaseInitialized, messaging, firebaseConfig } from '@/lib/firebase';
 import { AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PeerProvider, usePeer } from './peer-context';
@@ -143,9 +143,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Handle FCM Token and foreground messages
   useEffect(() => {
       if (!messaging || !userProfile || typeof window === 'undefined') return;
-
+      
       const setupNotifications = async () => {
           try {
+              // Pass config to service worker
+              navigator.serviceWorker.ready.then((registration) => {
+                registration.active?.postMessage({
+                  type: 'SET_FIREBASE_CONFIG',
+                  config: firebaseConfig
+                });
+              });
+
               const permission = await Notification.requestPermission();
               if (permission === 'granted') {
                   const fcmToken = await getToken(messaging, {
