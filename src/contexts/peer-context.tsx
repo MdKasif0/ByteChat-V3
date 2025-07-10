@@ -21,7 +21,7 @@ interface PeerContextType {
     isMuted: boolean;
     isCameraOff: boolean;
     startCall: (otherUser: { uid: string; peerId: string; name: string; avatar: string | null; username: string; }, type: 'audio' | 'video') => Promise<void>;
-    answerCall: (callToAnswer: Peer.MediaConnection) => Promise<void>;
+    answerCall: () => Promise<void>;
     endCall: () => void;
     toggleMute: () => void;
     toggleCamera: () => void;
@@ -150,11 +150,11 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         cleanupLocalCallState();
     }, [userProfile, cleanupLocalCallState]);
     
-    const answerCall = useCallback(async (callToAnswer: Peer.MediaConnection) => {
-        if (!callToAnswer) return;
+    const answerCall = useCallback(async () => {
+        if (!incomingCall) return;
         
-        const type = callToAnswer.metadata.type;
-        const callId = callToAnswer.metadata.callId;
+        const type = incomingCall.metadata.type;
+        const callId = incomingCall.metadata.callId;
 
         if (callId) {
             const callDocRef = doc(db!, 'calls', callId);
@@ -166,6 +166,33 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         
         const stream = await getMedia(type);
         
+        incomingCall.answer(stream);
+        setActiveCall(incomingCall);
+        setIncomingCall(null);
+        setIncomingCalls(prev => {
+            const newCalls = {...prev};
+            if(callId) delete newCalls[callId];
+            return newCalls;
+        });
+    }, [getMedia, incomingCall]);
+
+    const answerCallById = useCallback(async (callId: string) => {
+        const callToAnswer = incomingCalls[callId];
+        if (!callToAnswer) {
+            setPendingAnswerCallId(callId);
+            return;
+        }
+
+        const type = callToAnswer.metadata.type;
+
+        const callDocRef = doc(db!, 'calls', callId);
+        await updateDoc(callDocRef, {
+            status: 'connected',
+            answeredAt: serverTimestamp(),
+        });
+        
+        const stream = await getMedia(type);
+        
         callToAnswer.answer(stream);
         setActiveCall(callToAnswer);
         setIncomingCall(null);
@@ -174,16 +201,13 @@ export function PeerProvider({ children }: { children: ReactNode }) {
             delete newCalls[callId];
             return newCalls;
         });
-    }, [getMedia]);
+
+    }, [getMedia, incomingCalls]);
+
     
     const acceptCallFromUrl = useCallback((callId: string) => {
-        const call = incomingCalls[callId];
-        if (call) {
-            answerCall(call);
-        } else {
-            setPendingAnswerCallId(callId);
-        }
-    }, [incomingCalls, answerCall]);
+        answerCallById(callId);
+    }, [answerCallById]);
 
 
     useEffect(() => {
@@ -205,12 +229,14 @@ export function PeerProvider({ children }: { children: ReactNode }) {
 
         newPeer.on('call', (call) => {
             const callId = call.metadata?.callId;
-            if (callId === pendingAnswerCallId) {
-                answerCall(call);
-                setPendingAnswerCallId(null);
-            } else {
-                 setIncomingCalls(prev => ({ ...prev, [callId]: call }));
-                 setIncomingCall(call); // For dialog UI
+            if (callId) {
+                setIncomingCalls(prev => ({ ...prev, [callId]: call }));
+                if (callId === pendingAnswerCallId) {
+                    answerCallById(callId);
+                    setPendingAnswerCallId(null);
+                } else {
+                     setIncomingCall(call);
+                }
             }
         });
 
@@ -252,7 +278,7 @@ export function PeerProvider({ children }: { children: ReactNode }) {
             newPeer.destroy();
             peerRef.current = null;
         };
-    }, [userProfile, toast, PeerConstructor, endCall, answerCall, pendingAnswerCallId]);
+    }, [userProfile, toast, PeerConstructor, endCall, pendingAnswerCallId, answerCallById]);
 
     
     const startCall = async (otherUser: { uid: string; peerId: string; name: string; avatar: string | null; username: string; }, type: 'audio' | 'video') => {

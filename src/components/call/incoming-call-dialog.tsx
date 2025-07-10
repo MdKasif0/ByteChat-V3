@@ -56,7 +56,7 @@ export function IncomingCallDialog() {
                         <Button onClick={handleDecline} variant="destructive" size="icon" className="h-12 w-12 rounded-full">
                             <PhoneOff className="h-6 w-6" />
                         </Button>
-                        <Button onClick={answerCall} size="icon" className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600">
+                        <Button onClick={() => answerCall()} size="icon" className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600">
                             <Phone className="h-6 w-6" />
                         </Button>
                     </div>
