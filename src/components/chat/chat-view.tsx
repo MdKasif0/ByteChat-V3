@@ -181,7 +181,7 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
         if (isAiChat || !otherUserUid) return;
         const unsub = onSnapshot(doc(db!, 'users', otherUserUid), (doc) => {
             if (doc.exists()) {
-                setOtherUser(doc.data() as UserProfile);
+                setOtherUser({ uid: doc.id, ...doc.data() } as UserProfile);
             }
         });
         return () => unsub();
@@ -621,7 +621,7 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
                   <UserAvatar 
                      name={displayName}
                      avatarUrl={chat.avatar}
-                     ringColor="ring-primary"
+                     status={isAiChat ? 'online' : otherUser?.status}
                      className={cn("ring-2", isAiChat && !chat.avatar && "bg-primary/20 text-primary")}
                   />
                   <div className="ml-3 flex-1 overflow-hidden" onClick={handleOpenNicknameDialog}>

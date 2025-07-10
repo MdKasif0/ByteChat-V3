@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -80,7 +81,7 @@ function ChatListItem({ chat, currentUser, onChatSelect }: ChatListItemProps) {
     if (isAiChat || !otherUserUid) return;
     const unsub = onSnapshot(doc(db!, 'users', otherUserUid), (doc) => {
       if (doc.exists()) {
-        setOtherUser(doc.data() as UserProfile);
+        setOtherUser({ uid: doc.id, ...doc.data() } as UserProfile);
       }
     });
     return () => unsub();
