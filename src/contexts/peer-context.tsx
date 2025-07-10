@@ -102,8 +102,12 @@ export function PeerProvider({ children }: { children: ReactNode }) {
     }, [toast]);
 
     const cleanupLocalCallState = useCallback(() => {
-        activeCallRef.current?.close();
-        localStreamRef.current?.getTracks().forEach(track => track.stop());
+        if (activeCallRef.current) {
+            activeCallRef.current.close();
+        }
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(track => track.stop());
+        }
         setLocalStream(null);
         setRemoteStream(null);
         setActiveCall(null);
@@ -149,6 +153,18 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         
         cleanupLocalCallState();
     }, [userProfile, cleanupLocalCallState]);
+
+    const setupCallEvents = useCallback((call: Peer.MediaConnection) => {
+        call.on('stream', (stream) => {
+            setRemoteStream(stream);
+        });
+        call.on('close', endCall);
+        call.on('error', (err) => {
+            console.error('Call error:', err);
+            endCall();
+        });
+        setActiveCall(call);
+    }, [endCall]);
     
     const answerCall = useCallback(async () => {
         if (!incomingCall) return;
@@ -167,14 +183,14 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         const stream = await getMedia(type);
         
         incomingCall.answer(stream);
-        setActiveCall(incomingCall);
+        setupCallEvents(incomingCall);
         setIncomingCall(null);
         setIncomingCalls(prev => {
             const newCalls = {...prev};
             if(callId) delete newCalls[callId];
             return newCalls;
         });
-    }, [getMedia, incomingCall]);
+    }, [getMedia, incomingCall, setupCallEvents]);
 
     const answerCallById = useCallback(async (callId: string) => {
         const callToAnswer = incomingCalls[callId];
@@ -194,7 +210,7 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         const stream = await getMedia(type);
         
         callToAnswer.answer(stream);
-        setActiveCall(callToAnswer);
+        setupCallEvents(callToAnswer);
         setIncomingCall(null);
         setIncomingCalls(prev => {
             const newCalls = {...prev};
@@ -202,7 +218,7 @@ export function PeerProvider({ children }: { children: ReactNode }) {
             return newCalls;
         });
 
-    }, [getMedia, incomingCalls]);
+    }, [getMedia, incomingCalls, setupCallEvents]);
 
     
     const acceptCallFromUrl = useCallback((callId: string) => {
@@ -228,6 +244,13 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         });
 
         newPeer.on('call', (call) => {
+            // Do not accept new calls if one is already in progress
+            if (activeCallRef.current) {
+                // Optionally, automatically "busy" the call. For now, just ignore.
+                console.log("Ignoring incoming call, another call is active.");
+                return;
+            }
+
             const callId = call.metadata?.callId;
             if (callId) {
                 setIncomingCalls(prev => ({ ...prev, [callId]: call }));
@@ -345,9 +368,11 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         const call = peer.call(otherUser.peerId, stream, { metadata });
         
         if (call) {
-            setActiveCall(call);
+            setupCallEvents(call);
         } else {
              await updateDoc(callDocRef, { status: 'failed' });
+             toast({ variant: 'destructive', title: 'Call Failed', description: 'Could not connect to the user.' });
+             cleanupLocalCallState();
         }
     };
     
@@ -378,18 +403,6 @@ export function PeerProvider({ children }: { children: ReactNode }) {
             });
         });
     };
-
-    useEffect(() => {
-        if (!activeCall) return;
-        activeCall.on('stream', (stream) => { setRemoteStream(stream); });
-        activeCall.on('close', endCall);
-        activeCall.on('error', (err) => { console.error('Call Error:', err); endCall(); });
-        return () => {
-            activeCall.off('stream');
-            activeCall.off('close');
-            activeCall.off('error');
-        };
-    }, [activeCall, endCall]);
 
     const toggleMute = () => {
         if (localStream) {
@@ -434,3 +447,6 @@ export const usePeer = (): PeerContextType => {
     }
     return context;
 };
+
+
+    
