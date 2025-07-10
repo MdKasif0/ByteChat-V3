@@ -350,10 +350,7 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
                         messageData.replyTo = { messageId: replyingTo.id, text: replyingTo.text, senderUid: replyingTo.senderUid };
                     }
                     await sendMessage(messageData);
-                }
-
-                // Send files
-                if (files.length > 0) {
+                } else if (files.length > 0) { // Send files (with or without caption)
                     if (!otherUser?.peerId) {
                         toast({ variant: 'destructive', title: 'Cannot Send File', description: 'User is not available for file transfer.' });
                         return;
