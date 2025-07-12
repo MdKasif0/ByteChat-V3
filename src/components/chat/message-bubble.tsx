@@ -269,7 +269,7 @@ const ContextMenuContent = ({ onReact, onReply, onEdit, onSelect, onDelete, canE
     const actionItemClass = "w-full justify-start text-sm h-9 px-3";
 
     return (
-        <div className="flex flex-col gap-1 w-60">
+        <div className="flex flex-col gap-1 w-63">
              <div className="flex items-center justify-between p-1">
                 {defaultReactions.map(emoji => (
                     <motion.button 
