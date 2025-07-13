@@ -52,10 +52,7 @@ export function PeerProvider({ children }: { children: ReactNode }) {
 
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-    const [incomingCall, setIncomingCall] = useState<Peer.MediaConnection | null>(null); // For dialog UI
-    const [incomingCalls, setIncomingCalls] = useState<Record<string, Peer.MediaConnection>>({});
-    const [pendingAnswerCallId, setPendingAnswerCallId] = useState<string | null>(null);
-    
+    const [incomingCall, setIncomingCall] = useState<Peer.MediaConnection | null>(null);
     const [activeCall, setActiveCall] = useState<Peer.MediaConnection | null>(null);
     
     const activeCallRef = useRef(activeCall);
@@ -74,7 +71,7 @@ export function PeerProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         initDB();
     }, []);
-
+    
     const getMedia = useCallback(async (type: 'audio' | 'video'): Promise<MediaStream> => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -112,7 +109,6 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         setRemoteStream(null);
         setActiveCall(null);
         setIncomingCall(null);
-        setIncomingCalls({});
     }, []);
     
     const endCall = useCallback(async () => {
@@ -165,65 +161,58 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         });
         setActiveCall(call);
     }, [endCall]);
-    
+
     const answerCall = useCallback(async () => {
         if (!incomingCall) return;
-        
-        const type = incomingCall.metadata.type;
-        const callId = incomingCall.metadata.callId;
-
+    
+        const callToAnswer = incomingCall;
+        setIncomingCall(null); // Clear incoming call immediately to hide the dialog
+    
+        const type = callToAnswer.metadata.type;
+        const callId = callToAnswer.metadata.callId;
+    
         if (callId) {
-            const callDocRef = doc(db!, 'calls', callId);
-            await updateDoc(callDocRef, {
-                status: 'connected',
-                answeredAt: serverTimestamp(),
-            });
+            try {
+                const callDocRef = doc(db!, 'calls', callId);
+                await updateDoc(callDocRef, {
+                    status: 'connected',
+                    answeredAt: serverTimestamp(),
+                });
+            } catch (error) {
+                console.error("Error updating call status to connected:", error);
+            }
         }
-        
-        const stream = await getMedia(type);
-        
-        incomingCall.answer(stream);
-        setupCallEvents(incomingCall);
-        setIncomingCall(null);
-        setIncomingCalls(prev => {
-            const newCalls = {...prev};
-            if(callId) delete newCalls[callId];
-            return newCalls;
-        });
-    }, [getMedia, incomingCall, setupCallEvents]);
+    
+        try {
+            const stream = await getMedia(type);
+            callToAnswer.answer(stream);
+            setupCallEvents(callToAnswer);
+        } catch (error) {
+            console.error("Error getting media or answering call:", error);
+            // If we fail here, we should end the call on Firestore as well.
+            if (callId) {
+                const callDocRef = doc(db!, 'calls', callId);
+                await updateDoc(callDocRef, { status: 'failed', endedAt: serverTimestamp() }).catch();
+            }
+            callToAnswer.close(); // Close the peer connection
+        }
+    }, [incomingCall, getMedia, setupCallEvents]);
+    
 
     const answerCallById = useCallback(async (callId: string) => {
-        const callToAnswer = incomingCalls[callId];
-        if (!callToAnswer) {
-            setPendingAnswerCallId(callId);
-            return;
-        }
+        // This is a placeholder for a more complex flow if needed,
+        // for now we rely on the main `answerCall` logic which uses the `incomingCall` state.
+        console.log("Attempting to answer call by ID (not yet fully implemented):", callId);
+        // In a real scenario, you'd find the call in a state map and answer it.
+        // For now, we'll assume the `incomingCall` state is set correctly by the time user interacts.
+    }, []);
 
-        const type = callToAnswer.metadata.type;
-
-        const callDocRef = doc(db!, 'calls', callId);
-        await updateDoc(callDocRef, {
-            status: 'connected',
-            answeredAt: serverTimestamp(),
-        });
-        
-        const stream = await getMedia(type);
-        
-        callToAnswer.answer(stream);
-        setupCallEvents(callToAnswer);
-        setIncomingCall(null);
-        setIncomingCalls(prev => {
-            const newCalls = {...prev};
-            delete newCalls[callId];
-            return newCalls;
-        });
-
-    }, [getMedia, incomingCalls, setupCallEvents]);
-
-    
     const acceptCallFromUrl = useCallback((callId: string) => {
-        answerCallById(callId);
-    }, [answerCallById]);
+        // The logic in AuthProvider/ChatPage will handle showing the incoming call dialog
+        // or directly answering if the state is managed properly.
+        // This function is a signal to the app, but the core logic is in `answerCall`.
+        console.log("Accepted call from URL, callId:", callId);
+    }, []);
 
 
     useEffect(() => {
@@ -244,23 +233,12 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         });
 
         newPeer.on('call', (call) => {
-            // Do not accept new calls if one is already in progress
             if (activeCallRef.current) {
-                // Optionally, automatically "busy" the call. For now, just ignore.
                 console.log("Ignoring incoming call, another call is active.");
+                // You might want to send a 'busy' signal back to the caller here.
                 return;
             }
-
-            const callId = call.metadata?.callId;
-            if (callId) {
-                setIncomingCalls(prev => ({ ...prev, [callId]: call }));
-                if (callId === pendingAnswerCallId) {
-                    answerCallById(callId);
-                    setPendingAnswerCallId(null);
-                } else {
-                     setIncomingCall(call);
-                }
-            }
+            setIncomingCall(call);
         });
 
         newPeer.on('connection', (conn) => {
@@ -301,7 +279,7 @@ export function PeerProvider({ children }: { children: ReactNode }) {
             newPeer.destroy();
             peerRef.current = null;
         };
-    }, [userProfile, toast, PeerConstructor, endCall, pendingAnswerCallId, answerCallById]);
+    }, [userProfile, toast, PeerConstructor, endCall]);
 
     
     const startCall = async (otherUser: { uid: string; peerId: string; name: string; avatar: string | null; username: string; }, type: 'audio' | 'video') => {
@@ -447,6 +425,3 @@ export const usePeer = (): PeerContextType => {
     }
     return context;
 };
-
-
-    

@@ -82,7 +82,9 @@ function AppWithCallUI({ children, isOnline }: { children: React.ReactNode, isOn
             </AnimatePresence>
             {children}
             <IncomingCallDialog />
-            {callInProgress && <CallView />}
+            <AnimatePresence>
+                {callInProgress && <CallView />}
+            </AnimatePresence>
         </>
     )
 }
