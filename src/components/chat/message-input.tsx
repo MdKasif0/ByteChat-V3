@@ -225,7 +225,7 @@ export function MessageInput({ onSend, onUpdateMessage, replyingTo, editingMessa
             )}
             <form onSubmit={handleSend} className="flex items-center gap-2">
                 <div className={cn(
-                    "flex flex-1 items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1.5 text-foreground rounded-full h-12",
+                    "flex flex-1 items-center gap-1 bg-zinc-200 dark:bg-zinc-800 p-1.5 text-foreground rounded-full h-12",
                     mode !== 'default' && !isAiChat ? 'rounded-b-full' : 'rounded-full'
                 )}>
                     <Popover>
