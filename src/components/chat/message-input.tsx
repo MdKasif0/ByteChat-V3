@@ -225,12 +225,12 @@ export function MessageInput({ onSend, onUpdateMessage, replyingTo, editingMessa
             )}
             <form onSubmit={handleSend} className="flex items-center gap-2">
                 <div className={cn(
-                    "flex flex-1 items-center gap-1 bg-primary p-1.5 text-primary-foreground rounded-full h-12",
+                    "flex flex-1 items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1.5 text-foreground rounded-full h-12",
                     mode !== 'default' && !isAiChat ? 'rounded-b-full' : 'rounded-full'
                 )}>
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" type="button" className="bg-card text-card-foreground hover:bg-muted h-9 w-9 rounded-full shrink-0">
+                            <Button variant="ghost" size="icon" type="button" className="bg-background text-card-foreground hover:bg-muted h-9 w-9 rounded-full shrink-0">
                                 <Smile />
                             </Button>
                         </PopoverTrigger>
@@ -243,14 +243,14 @@ export function MessageInput({ onSend, onUpdateMessage, replyingTo, editingMessa
                         placeholder="Type something.."
                         value={text}
                         onChange={handleTextChange}
-                        className="flex-1 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base h-9 text-primary-foreground placeholder:text-primary-foreground/50"
+                        className="flex-1 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base h-9 text-foreground placeholder:text-muted-foreground"
                     />
                     
                      <Button 
                         variant="ghost" 
                         size="icon" 
                         type="button" 
-                        className="bg-card text-card-foreground hover:bg-muted h-9 w-9 rounded-full shrink-0" 
+                        className="bg-background text-card-foreground hover:bg-muted h-9 w-9 rounded-full shrink-0" 
                         disabled={isAiChat}
                         onClick={() => fileInputRef.current?.click()}
                     >
@@ -260,7 +260,7 @@ export function MessageInput({ onSend, onUpdateMessage, replyingTo, editingMessa
                         variant="ghost" 
                         size="icon" 
                         type="button" 
-                        className="bg-card text-card-foreground hover:bg-muted h-9 w-9 rounded-full shrink-0" 
+                        className="bg-background text-card-foreground hover:bg-muted h-9 w-9 rounded-full shrink-0" 
                         disabled={isAiChat}
                         onClick={() => setIsVoiceMode(true)}
                     >
@@ -270,7 +270,7 @@ export function MessageInput({ onSend, onUpdateMessage, replyingTo, editingMessa
                     <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} multiple />
                 </div>
 
-                <Button size="icon" type="submit" disabled={!text.trim() && filesToSend.length === 0} className="rounded-full h-12 w-12 shrink-0 bg-accent hover:bg-accent/90 disabled:bg-muted disabled:text-muted-foreground">
+                <Button size="icon" type="submit" disabled={!text.trim() && filesToSend.length === 0} className="rounded-full h-12 w-12 shrink-0 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground">
                     <ArrowRight className="h-5 w-5" />
                 </Button>
             </form>
