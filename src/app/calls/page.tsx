@@ -1,7 +1,7 @@
 'use client';
 
 import { MobileLayout } from '@/components/layout/mobile-layout';
-import { Phone, Video, ArrowUpRight, ArrowDownLeft, LayoutGrid, Search, MoreVertical, Plus } from 'lucide-react';
+import { Phone, Video, ArrowUpRight, ArrowDownLeft, Search, MoreVertical, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth, UserProfile } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase';
@@ -115,9 +115,6 @@ export default function CallsPage() {
       <header className="flex items-center justify-between p-4">
         <h1 className="text-3xl font-bold">Calls</h1>
         <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-muted-foreground">
-                <LayoutGrid className="h-5 w-5" />
-            </Button>
             <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-muted-foreground">
                 <Search className="h-5 w-5" />
             </Button>
