@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Smile, Mic, ArrowRight, X, Pencil, MessageSquare, Paperclip, Image as ImageIcon, Video, FileText, Trash2 } from "lucide-react";
+import { Smile, Mic, ChevronRight, X, Pencil, MessageSquare, Paperclip, Image as ImageIcon, Video, FileText, Trash2 } from "lucide-react";
 import type { Message } from './message-list';
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { EmojiPicker } from "./emoji-picker";
@@ -102,7 +102,7 @@ function RecordingView({ onCancel, onSend }: { onCancel: () => void; onSend: (da
                 <span className="ml-3 font-mono text-lg tabular-nums text-foreground">{formatTime(recordingTime)}</span>
             </div>
              <Button size="icon" className="rounded-full h-12 w-12 shrink-0 bg-primary hover:bg-primary/90" onClick={stopRecording}>
-                <ArrowRight className="h-5 w-5" />
+                <ChevronRight className="h-6 w-6" />
             </Button>
         </div>
     )
@@ -271,7 +271,7 @@ export function MessageInput({ onSend, onUpdateMessage, replyingTo, editingMessa
                 </div>
 
                 <Button size="icon" type="submit" disabled={!text.trim() && filesToSend.length === 0} className="rounded-full h-12 w-12 shrink-0 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground">
-                    <ArrowRight className="h-5 w-5" />
+                    <ChevronRight className="h-6 w-6" />
                 </Button>
             </form>
         </footer>
