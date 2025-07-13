@@ -220,10 +220,10 @@ function ChatPageContent() {
         <div className="bg-card md:rounded-t-3xl shadow-t-xl mt-4 flex-1">
             <Tabs defaultValue="all" className="w-full pt-4">
                 <TabsList className="mx-auto flex w-fit bg-transparent px-2 space-x-2">
-                    <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4">All</TabsTrigger>
-                    <TabsTrigger value="groups" className="rounded-full data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4">Groups</TabsTrigger>
-                    <TabsTrigger value="contacts" className="rounded-full data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4">Contacts</TabsTrigger>
-                    <TabsTrigger value="archive" className="rounded-full data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4">Archive</TabsTrigger>
+                    <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">All</TabsTrigger>
+                    <TabsTrigger value="groups" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Groups</TabsTrigger>
+                    <TabsTrigger value="contacts" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Contacts</TabsTrigger>
+                    <TabsTrigger value="archive" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Archive</TabsTrigger>
                 </TabsList>
                 <TabsContent value="all" className="mt-4 px-4">
                     <ChatList onChatSelect={setActiveChat} />

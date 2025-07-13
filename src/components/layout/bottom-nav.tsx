@@ -60,7 +60,7 @@ export function BottomNav({ onChatSelect }: BottomNavProps) {
         <NewChatDialog onChatSelect={handleChatSelect}>
           <Button
             size="icon"
-            className="rounded-full h-14 w-14 bg-primary/20 text-primary shadow-lg hover:bg-primary/30"
+            className="rounded-full h-14 w-14 bg-primary text-primary-foreground shadow-lg hover:bg-primary/90"
           >
             <Plus className="h-7 w-7" />
           </Button>
