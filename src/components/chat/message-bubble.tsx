@@ -360,8 +360,8 @@ export const MessageBubble = (props: MessageBubbleProps) => {
         message.isDeleted
             ? "bg-transparent border border-dashed text-muted-foreground/80 italic text-sm px-4 py-2.5 rounded-2xl"
             : isMe
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-card-foreground",
+            ? "bg-[hsl(var(--chat-bubble-outgoing-bg))] text-[hsl(var(--chat-bubble-outgoing-fg))]"
+            : "bg-[hsl(var(--chat-bubble-incoming-bg))] text-[hsl(var(--chat-bubble-incoming-fg))]",
         isMediaOnly ? "p-1.5" : message.type === 'audio' ? "p-2" : "px-3 py-2",
         "rounded-2xl",
         isMe ? !isFirstInGroup && "rounded-tr-md" : !isFirstInGroup && "rounded-tl-md",
