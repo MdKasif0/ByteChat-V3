@@ -21,7 +21,7 @@ interface PeerContextType {
     isMuted: boolean;
     isCameraOff: boolean;
     startCall: (otherUser: { uid: string; peerId: string; name: string; avatar: string | null; username: string; }, type: 'audio' | 'video') => Promise<void>;
-    answerCall: () => Promise<void>;
+    answerCall: (callToAnswer: Peer.MediaConnection) => Promise<void>;
     endCall: () => void;
     toggleMute: () => void;
     toggleCamera: () => void;
@@ -162,41 +162,38 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         setActiveCall(call);
     }, [endCall]);
 
-    const answerCall = useCallback(async () => {
-        if (!incomingCall) return;
+    const answerCall = useCallback(async (callToAnswer: Peer.MediaConnection) => {
+        if (!callToAnswer) return;
     
-        const callToAnswer = incomingCall;
-        setIncomingCall(null); // Clear incoming call immediately to hide the dialog
+        setIncomingCall(null);
     
         const type = callToAnswer.metadata.type;
         const callId = callToAnswer.metadata.callId;
     
-        if (callId) {
-            try {
+        try {
+            const stream = await getMedia(type);
+            
+            // Set up events before answering
+            setupCallEvents(callToAnswer);
+            callToAnswer.answer(stream);
+
+            if (callId) {
                 const callDocRef = doc(db!, 'calls', callId);
                 await updateDoc(callDocRef, {
                     status: 'connected',
                     answeredAt: serverTimestamp(),
                 });
-            } catch (error) {
-                console.error("Error updating call status to connected:", error);
             }
-        }
-    
-        try {
-            const stream = await getMedia(type);
-            callToAnswer.answer(stream);
-            setupCallEvents(callToAnswer);
         } catch (error) {
             console.error("Error getting media or answering call:", error);
-            // If we fail here, we should end the call on Firestore as well.
             if (callId) {
                 const callDocRef = doc(db!, 'calls', callId);
                 await updateDoc(callDocRef, { status: 'failed', endedAt: serverTimestamp() }).catch();
             }
-            callToAnswer.close(); // Close the peer connection
+            callToAnswer.close();
+            cleanupLocalCallState();
         }
-    }, [incomingCall, getMedia, setupCallEvents]);
+    }, [getMedia, setupCallEvents, cleanupLocalCallState]);
     
 
     const answerCallById = useCallback(async (callId: string) => {
