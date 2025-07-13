@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     title: 'ByteChat',
   },
   
-  // Open Graph (for social sharing)
+  // Open Graph (for social sharing on platforms like WhatsApp, Facebook)
   openGraph: {
     title: 'ByteChat - Secure, Real-time Messaging and Calls',
     description: 'Experience seamless communication with secure messaging, HD calls, and status updates.',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     siteName: 'ByteChat',
     images: [
       {
-        url: '/bytechat-cover.png', // The path to your cover image in the `public` folder
+        url: '/bytechat-cover.png', // This image must be in your `public` folder
         width: 1200,
         height: 630,
         alt: 'ByteChat Application Cover',
@@ -40,12 +40,12 @@ export const metadata: Metadata = {
     type: 'website',
   },
 
-  // Twitter Card
+  // Twitter Card (for sharing on X/Twitter)
   twitter: {
     card: 'summary_large_image',
     title: 'ByteChat - Modern Communication, Reimagined',
     description: 'Secure messaging, HD calls, and status updates. Join ByteChat and connect with your world in real-time.',
-    images: ['/bytechat-cover.png'], // The path to your cover image in the `public` folder
+    images: ['/bytechat-cover.png'], // This image must be in your `public` folder
   },
 };
 
