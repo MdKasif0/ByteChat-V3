@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,35 +37,34 @@ const formSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 });
 
-export default function LoginPage() {
-  const { signInWithGoogle } = useAuth();
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const AuthForm = ({ type }: { type: 'signin' | 'signup' }) => {
+    const { toast } = useToast();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const handleEmailSignIn = async (values: z.infer<typeof formSchema>) => {
-    setIsSubmitting(true);
-    try {
-      await signInWithEmailAndPassword(auth!, values.email, values.password);
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Sign In Failed",
-        description: error.message,
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+          email: "",
+          password: "",
+        },
       });
-    } finally {
-        setIsSubmitting(false);
-    }
-  };
 
-  const handleEmailSignUp = async (values: z.infer<typeof formSchema>) => {
+    const handleEmailSignIn = async (values: z.infer<typeof formSchema>) => {
+        setIsSubmitting(true);
+        try {
+          await signInWithEmailAndPassword(auth!, values.email, values.password);
+        } catch (error: any) {
+          toast({
+            variant: "destructive",
+            title: "Sign In Failed",
+            description: error.message,
+          });
+        } finally {
+            setIsSubmitting(false);
+        }
+      };
+    
+    const handleEmailSignUp = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
         await createUserWithEmailAndPassword(auth!, values.email, values.password);
@@ -77,43 +77,55 @@ export default function LoginPage() {
     } finally {
         setIsSubmitting(false);
     }
-  }
+    }
 
-  const AuthForm = ({ type }: { type: 'signin' | 'signup' }) => (
-    <Form {...form}>
-        <form onSubmit={form.handleSubmit(type === 'signin' ? handleEmailSignIn : handleEmailSignUp)} className="grid gap-4">
-            <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                            <Input placeholder="you@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
-            <Button type="submit" className="w-full mt-4 h-11 text-base font-semibold" disabled={isSubmitting}>
-                {isSubmitting ? 'Processing...' : (type === 'signin' ? 'Sign In' : 'Create Account')}
-            </Button>
-        </form>
-    </Form>
-  )
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(type === 'signin' ? handleEmailSignIn : handleEmailSignUp)} className="grid gap-4">
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input placeholder="you@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" placeholder="••••••••" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <Button type="submit" className="w-full mt-4 h-11 text-base font-semibold" disabled={isSubmitting}>
+                    {isSubmitting ? 'Processing...' : (type === 'signin' ? 'Sign In' : 'Create Account')}
+                </Button>
+            </form>
+        </Form>
+    )
+}
+
+
+export default function LoginPage() {
+  const { signInWithGoogle } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false); // To disable Google button
+
+  const handleGoogleSignIn = async () => {
+      setIsSubmitting(true);
+      await signInWithGoogle();
+      setIsSubmitting(false);
+  }
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-muted/20 p-4 font-body">
@@ -163,7 +175,7 @@ export default function LoginPage() {
                     </span>
                     </div>
                 </div>
-                <Button variant="outline" className="w-full h-12 text-base" onClick={signInWithGoogle} disabled={isSubmitting}>
+                <Button variant="outline" className="w-full h-12 text-base" onClick={handleGoogleSignIn} disabled={isSubmitting}>
                     <GoogleIcon className="mr-3 h-5 w-5" />
                     Sign in with Google
                 </Button>
