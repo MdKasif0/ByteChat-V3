@@ -19,7 +19,7 @@ export function MobileLayout({ children, onChatSelect }: MobileLayoutProps) {
         <BottomNav onChatSelect={onChatSelect} />
         <NewChatDialog onChatSelect={onChatSelect}>
             <Button size="icon" className="h-16 w-16 rounded-full bg-primary shadow-lg">
-                <UserPlus className="h-8 w-8 text-background dark:text-black" />
+                <UserPlus className="h-8 w-8 text-primary-foreground" />
             </Button>
         </NewChatDialog>
       </div>
