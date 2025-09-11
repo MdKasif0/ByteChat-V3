@@ -7,8 +7,13 @@ import { useAuth, UserProfile } from './auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
 import { addDoc, collection, doc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore';
-import { initDB, saveFile } from '@/lib/indexed-db';
+import { initDB, saveFile, getFile as getFileFromDb } from '@/lib/indexed-db';
 import { eventBus } from '@/lib/event-bus';
+
+interface FileRequest {
+    type: 'REQUEST_FILE';
+    fileId: string;
+}
 
 interface PeerContextType {
     peer: Peer | null;
@@ -26,6 +31,7 @@ interface PeerContextType {
     toggleMute: () => void;
     toggleCamera: () => void;
     sendFile: (peerId: string, file: File) => Promise<{ fileId: string; fileName: string; fileSize: number; mediaType: string; }>;
+    requestFile: (senderPeerId: string, fileId: string) => void;
     acceptCallFromUrl: (callId: string) => void;
 }
 
@@ -240,6 +246,7 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         newPeer.on('connection', (conn) => {
             dataConnectionsRef.current[conn.peer] = conn;
             conn.on('data', async (data: any) => {
+                // Listener for incoming file data
                 if (data.file && data.fileId && data.fileName && data.fileType) {
                     try {
                         const receivedFile = new File([data.file], data.fileName, { type: data.fileType });
@@ -249,6 +256,20 @@ export function PeerProvider({ children }: { children: ReactNode }) {
                     } catch (err) {
                         console.error("Failed to save received file", err);
                         toast({ variant: 'destructive', title: "File Receive Error", description: "Could not save the received file." });
+                    }
+                }
+
+                // Listener for file requests
+                const request = data as FileRequest;
+                if (request.type === 'REQUEST_FILE' && request.fileId) {
+                    const file = await getFileFromDb(request.fileId);
+                    if (file) {
+                        conn.send({
+                            fileId: request.fileId,
+                            file: file,
+                            fileName: file.name,
+                            fileType: file.type,
+                        });
                     }
                 }
             });
@@ -356,32 +377,38 @@ export function PeerProvider({ children }: { children: ReactNode }) {
     };
     
     const sendFile = (peerId: string, file: File): Promise<{ fileId: string; fileName: string; fileSize: number; mediaType: string; }> => {
-        return new Promise((resolve, reject) => {
-            if (!peerRef.current) {
-                return reject(new Error('Peer connection not established.'));
-            }
-            const conn = peerRef.current.connect(peerId, { reliable: true });
-            conn.on('open', () => {
-                const fileId = `${Date.now()}-${file.name}`;
-                saveFile(fileId, file)
-                    .then(() => {
-                        const payload = { fileId, file, fileName: file.name, fileType: file.type };
-                        conn.send(payload);
-                        resolve({
-                            fileId,
-                            fileName: file.name,
-                            fileSize: file.size,
-                            mediaType: file.type,
-                        });
-                    })
-                    .catch(err => reject(err));
-            });
-            conn.on('error', (err) => {
-                console.error('Data connection error:', err);
+        return new Promise(async (resolve, reject) => {
+            const fileId = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+            try {
+                await saveFile(fileId, file);
+                resolve({
+                    fileId,
+                    fileName: file.name,
+                    fileSize: file.size,
+                    mediaType: file.type,
+                });
+            } catch (err) {
+                console.error("Failed to save file to IndexedDB", err);
                 reject(err);
-            });
+            }
         });
     };
+
+    const requestFile = useCallback((senderPeerId: string, fileId: string) => {
+        if (!peerRef.current) {
+            console.error("Peer not initialized, cannot request file.");
+            return;
+        }
+
+        const conn = peerRef.current.connect(senderPeerId, { reliable: true });
+        conn.on('open', () => {
+            const request: FileRequest = { type: 'REQUEST_FILE', fileId };
+            conn.send(request);
+        });
+        conn.on('error', (err) => {
+            console.error(`Data connection error while requesting file ${fileId}:`, err);
+        });
+    }, []);
 
     const toggleMute = () => {
         if (localStream) {
@@ -413,6 +440,7 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         toggleMute,
         toggleCamera,
         sendFile,
+        requestFile,
         acceptCallFromUrl,
     };
 

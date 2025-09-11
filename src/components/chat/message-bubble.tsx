@@ -6,7 +6,7 @@ import { cn, formatBytes } from "@/lib/utils";
 import type { Message } from './message-list';
 import type { UserProfile } from '@/contexts/auth-context';
 import { format } from 'date-fns';
-import { Check, CheckCheck, FileText, Download, Play, Image as ImageIcon, Plus, SmilePlus, MessageSquareReply, Pencil, Trash2, ListChecks } from 'lucide-react';
+import { Check, CheckCheck, FileText, Download, Play, Image as ImageIcon, Plus, SmilePlus, MessageSquareReply, Pencil, Trash2, ListChecks, AlertCircle } from 'lucide-react';
 import type { Timestamp } from 'firebase/firestore';
 import { getFile } from '@/lib/indexed-db';
 import { Skeleton } from '../ui/skeleton';
@@ -17,6 +17,7 @@ import { Button } from '../ui/button';
 import { motion } from 'framer-motion';
 import { EmojiPicker } from './emoji-picker';
 import { Separator } from '../ui/separator';
+import { usePeer } from '@/contexts/peer-context';
 
 type MessageBubbleProps = {
     message: Message;
@@ -25,7 +26,7 @@ type MessageBubbleProps = {
     isFirstInGroup: boolean;
     isLastInGroup: boolean;
     currentUser: UserProfile;
-    otherUser: { uid: string, name: string };
+    otherUser: { uid: string, name: string, peerId: string };
     nicknames?: Record<string, string>;
     otherUserReadUntil?: Timestamp;
     selectionMode: boolean;
@@ -40,7 +41,8 @@ type MessageBubbleProps = {
 };
 
 
-const useFileBlobUrl = (fileId?: string) => {
+const useFileBlobUrl = (fileId?: string, senderPeerId?: string) => {
+    const { requestFile } = usePeer();
     const [blobUrl, setBlobUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -52,14 +54,19 @@ const useFileBlobUrl = (fileId?: string) => {
         setIsLoading(true);
         try {
             const file = await getFile(fileId);
-            return file;
+            if (file) {
+                return file;
+            } else if (senderPeerId) {
+                requestFile(senderPeerId, fileId);
+            }
+            return null;
         } catch (error) {
             console.error("Failed to get file from DB", error);
             return null;
         } finally {
             setIsLoading(false);
         }
-    }, [fileId]);
+    }, [fileId, senderPeerId, requestFile]);
 
     useEffect(() => {
         let objectUrl: string | null = null;
@@ -72,6 +79,7 @@ const useFileBlobUrl = (fileId?: string) => {
             if (file) {
                 objectUrl = URL.createObjectURL(file);
                 setBlobUrl(objectUrl);
+                setIsLoading(false); // File loaded, no longer loading
             } else {
                 setBlobUrl(null);
             }
@@ -82,7 +90,8 @@ const useFileBlobUrl = (fileId?: string) => {
         const handleFileReceived = (event: Event) => {
             const customEvent = event as CustomEvent<{ fileId: string }>;
             if (customEvent.detail.fileId === fileId) {
-                tryLoadFile().then(setUrlFromFile);
+                // When file is received, get it from DB and set the URL
+                getFile(fileId).then(setUrlFromFile);
             }
         };
 
@@ -165,19 +174,21 @@ const Reactions = ({ message, isMe }: { message: Message, isMe: boolean }) => {
 }
 
 const MessageContent = ({ message, isMe, onMediaClick }: { message: Message; isMe: boolean; onMediaClick: (messageId: string) => void; }) => {
-    const { blobUrl, isLoading } = useFileBlobUrl(message.fileId);
+    const { requestFile } = usePeer();
+    const senderPeerId = isMe ? undefined : message.senderPeerId;
+    const { blobUrl, isLoading } = useFileBlobUrl(message.fileId, senderPeerId);
     
     if (isLoading) {
         return <Skeleton className="w-64 h-24 rounded-lg" />;
     }
 
     if (!blobUrl && (message.type === 'image' || message.type === 'video' || message.type === 'file' || message.type === 'audio')) {
-        return (
-            <div className="flex items-center gap-3 text-destructive p-3 rounded-lg max-w-xs">
-                <FileText className="h-8 w-8 shrink-0" />
+         return (
+            <div className="flex items-center gap-3 text-muted-foreground p-3 rounded-lg max-w-xs">
+                <AlertCircle className="h-8 w-8 shrink-0 text-destructive" />
                 <div className="flex-1 overflow-hidden">
-                    <p className="font-semibold truncate">File not found</p>
-                    <p className="text-xs">This file may have been deleted.</p>
+                    <p className="font-semibold truncate text-foreground">File not available</p>
+                    <p className="text-xs">The sender might be offline.</p>
                 </div>
             </div>
         );
@@ -392,7 +403,7 @@ export const MessageBubble = (props: MessageBubbleProps) => {
                                 <ReplyQuote message={message} currentUser={currentUser} otherUser={otherUser} nicknames={nicknames} />
                             )}
                             <MessageContent
-                                message={message}
+                                message={{ ...message, senderPeerId: isMe ? currentUser.peerId : otherUser.peerId }}
                                 isMe={isMe}
                                 onMediaClick={onMediaClick}
                             />

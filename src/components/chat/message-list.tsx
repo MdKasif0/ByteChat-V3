@@ -38,6 +38,7 @@ export type Message = {
         senderUid: string;
     };
     senderName?: string; // Used for replies
+    senderPeerId?: string; // Used for file requests
 };
 
 type MessageListProps = {
@@ -50,6 +51,7 @@ type MessageListProps = {
         name: string;
         avatar: string;
         username: string;
+        peerId: string;
     };
     chatData: any;
     selectionMode: boolean;
