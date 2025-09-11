@@ -4,6 +4,7 @@ import { BottomNav } from './bottom-nav';
 import { NewChatDialog } from '../chat/new-chat-dialog';
 import { Button } from '../ui/button';
 import { UserPlus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type MobileLayoutProps = PropsWithChildren<{
     onChatSelect: (chat: any) => void;
@@ -18,7 +19,7 @@ export function MobileLayout({ children, onChatSelect }: MobileLayoutProps) {
         <BottomNav onChatSelect={onChatSelect} />
         <NewChatDialog onChatSelect={onChatSelect}>
             <Button size="icon" className="h-16 w-16 rounded-full bg-primary shadow-lg">
-                <UserPlus className="h-7 w-7" />
+                <UserPlus className="h-8 w-8 text-background dark:text-black" />
             </Button>
         </NewChatDialog>
       </div>
