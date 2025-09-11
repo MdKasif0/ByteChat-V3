@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -139,14 +140,18 @@ export default function ContactInfoPage() {
 
     useEffect(() => {
         if (!chatId) return;
+        // This query was causing a crash without a composite index.
+        // We'll fetch the latest messages and filter them on the client.
         const mediaQuery = query(
             collection(db, 'chats', chatId, 'messages'),
-            where('type', 'in', ['image', 'video']),
             orderBy('timestamp', 'desc'),
-            limit(4)
+            limit(25) // Fetch more messages to increase chance of finding media
         );
         const unsubscribe = onSnapshot(mediaQuery, (snapshot) => {
-            const mediaItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+            const allMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+            const mediaItems = allMessages
+                .filter(msg => ['image', 'video'].includes(msg.type))
+                .slice(0, 4); // Take the first 4 media items found
             setMedia(mediaItems);
         });
         return () => unsubscribe();
