@@ -134,7 +134,7 @@ export function PeerProvider({ children }: { children: ReactNode }) {
                          finalStatus = userProfile.uid === callData.callerId ? 'missed' : 'declined';
                     }
                     
-                    if (finalStatus !== callData.status) {
+                    if (finalStatus !== callData.status && callData.status !== 'completed' && callData.status !== 'missed' && callData.status !== 'declined') {
                         await updateDoc(callDocRef, {
                             status: finalStatus,
                             endedAt: serverTimestamp(),
@@ -173,9 +173,8 @@ export function PeerProvider({ children }: { children: ReactNode }) {
         try {
             const stream = await getMedia(type);
             
-            // Set up events before answering
-            setupCallEvents(callToAnswer);
             callToAnswer.answer(stream);
+            setupCallEvents(callToAnswer);
 
             if (callId) {
                 const callDocRef = doc(db!, 'calls', callId);
@@ -329,22 +328,27 @@ export function PeerProvider({ children }: { children: ReactNode }) {
                 }),
             });
         }
-
-        const stream = await getMedia(type);
-
-        const metadata = {
-            callerId: userProfile.uid,
-            name: userProfile.name,
-            avatar: userProfile.avatar,
-            type: type,
-            callId: callId,
-        };
-
-        const call = peer.call(otherUser.peerId, stream, { metadata });
         
-        if (call) {
-            setupCallEvents(call);
-        } else {
+        try {
+            const stream = await getMedia(type);
+
+            const metadata = {
+                callerId: userProfile.uid,
+                name: userProfile.name,
+                avatar: userProfile.avatar,
+                type: type,
+                callId: callId,
+            };
+
+            const call = peer.call(otherUser.peerId, stream, { metadata });
+            
+            if (call) {
+                setupCallEvents(call);
+            } else {
+                 throw new Error("PeerJS call failed to initialize.");
+            }
+        } catch (error) {
+             console.error("Error starting call:", error);
              await updateDoc(callDocRef, { status: 'failed' });
              toast({ variant: 'destructive', title: 'Call Failed', description: 'Could not connect to the user.' });
              cleanupLocalCallState();
