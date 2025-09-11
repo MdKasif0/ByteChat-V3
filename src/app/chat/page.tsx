@@ -225,29 +225,27 @@ function ChatPageContent() {
     <MobileLayout onChatSelect={setActiveChat}>
         <div className="flex flex-col h-full">
             <HomeHeader onNewChat={setActiveChat} />
-            <main className="flex-1 flex flex-col min-h-0">
-                <div className="bg-card md:rounded-t-3xl shadow-t-xl mt-4 flex-1 flex flex-col">
-                    <Tabs defaultValue="all" className="w-full pt-4 flex flex-col flex-1">
-                        <TabsList className="mx-auto flex w-fit bg-transparent px-2 space-x-2 shrink-0">
-                            <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">All</TabsTrigger>
-                            <TabsTrigger value="groups" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Groups</TabsTrigger>
-                            <TabsTrigger value="contacts" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Contacts</TabsTrigger>
-                            <TabsTrigger value="archive" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Archive</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="all" className="mt-4 px-4 flex-1 overflow-y-auto">
-                            <ChatList onChatSelect={setActiveChat} />
-                        </TabsContent>
-                         <TabsContent value="groups" className="mt-4 px-4 flex-1 overflow-y-auto">
-                            <div className="text-center text-muted-foreground pt-10">Groups coming soon!</div>
-                        </TabsContent>
-                         <TabsContent value="contacts" className="mt-4 px-4 flex-1 overflow-y-auto">
-                            <div className="text-center text-muted-foreground pt-10">Contacts coming soon!</div>
-                        </TabsContent>
-                         <TabsContent value="archive" className="mt-4 px-4 flex-1 overflow-y-auto">
-                             <div className="text-center text-muted-foreground pt-10">Archived chats coming soon!</div>
-                        </TabsContent>
-                    </Tabs>
-                </div>
+            <main className="flex-1 flex flex-col min-h-0 bg-card md:rounded-t-3xl shadow-t-xl mt-4">
+                <Tabs defaultValue="all" className="w-full pt-4 flex flex-col flex-1">
+                    <TabsList className="mx-auto flex w-fit bg-transparent px-2 space-x-2 shrink-0">
+                        <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">All</TabsTrigger>
+                        <TabsTrigger value="groups" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Groups</TabsTrigger>
+                        <TabsTrigger value="contacts" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Contacts</TabsTrigger>
+                        <TabsTrigger value="archive" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Archive</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="all" className="mt-4 px-4 flex-1 overflow-y-auto">
+                        <ChatList onChatSelect={setActiveChat} />
+                    </TabsContent>
+                     <TabsContent value="groups" className="mt-4 px-4 flex-1 overflow-y-auto">
+                        <div className="text-center text-muted-foreground pt-10">Groups coming soon!</div>
+                    </TabsContent>
+                     <TabsContent value="contacts" className="mt-4 px-4 flex-1 overflow-y-auto">
+                        <div className="text-center text-muted-foreground pt-10">Contacts coming soon!</div>
+                    </TabsContent>
+                     <TabsContent value="archive" className="mt-4 px-4 flex-1 overflow-y-auto">
+                         <div className="text-center text-muted-foreground pt-10">Archived chats coming soon!</div>
+                    </TabsContent>
+                </Tabs>
             </main>
         </div>
     </MobileLayout>
