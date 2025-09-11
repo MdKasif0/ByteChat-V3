@@ -84,6 +84,11 @@ const HomeHeader = ({ onNewChat }: { onNewChat: (chat: any) => void }) => {
                         transition={{ duration: 0.2 }}
                         className="flex items-center gap-1"
                     >
+                        <NewChatDialog onChatSelect={onNewChat}>
+                           <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
+                                <Plus className="h-5 w-5" />
+                            </Button>
+                        </NewChatDialog>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
