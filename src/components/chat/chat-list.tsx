@@ -8,29 +8,18 @@ import {
   onSnapshot,
   Timestamp,
   doc,
-  deleteDoc,
 } from 'firebase/firestore';
 import React, { useEffect, useState, useRef } from 'react';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/auth-context';
 import { UserAvatar } from '../user-avatar';
 import { Badge } from '../ui/badge';
-import { Skeleton } from '../ui/skeleton';
-import { Check, CheckCheck, Image as ImageIcon, Video, FileText, Mic } from 'lucide-react';
+import { CheckCheck, Image as ImageIcon, Video, FileText, Mic, CheckCircle } from 'lucide-react';
 import type { UserProfile } from '@/contexts/auth-context';
 import { LottieAnimation } from '../lottie-animation';
-import { toast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { buttonVariants } from "@/components/ui/button";
+import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+
 
 export type Chat = {
   id: string;
@@ -59,6 +48,10 @@ type ChatListItemProps = {
   chat: Chat;
   currentUser: UserProfile;
   onChatSelect: (chat: any) => void;
+  selectionMode: boolean;
+  isSelected: boolean;
+  onSelectChat: (chat: Chat) => void;
+  onEnterSelectionMode: (chat: Chat) => void;
 };
 
 const formatTimestamp = (timestamp: Timestamp | undefined) => {
@@ -67,14 +60,13 @@ const formatTimestamp = (timestamp: Timestamp | undefined) => {
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
-function ChatListItem({ chat, currentUser, onChatSelect }: ChatListItemProps) {
+function ChatListItem({ chat, currentUser, onChatSelect, selectionMode, isSelected, onSelectChat, onEnterSelectionMode }: ChatListItemProps) {
   const isAiChat = chat.id === 'ai-assistant';
   const otherUserUid = chat.participantUids.find((uid) => uid !== currentUser.uid);
   const [otherUser, setOtherUser] = useState<UserProfile | null>(null);
   
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout>();
-  const isLongPressHandled = useRef(false);
+  const isActionTriggered = useRef(false);
 
   useEffect(() => {
     if (isAiChat || !otherUserUid) return;
@@ -88,47 +80,21 @@ function ChatListItem({ chat, currentUser, onChatSelect }: ChatListItemProps) {
 
   const handlePointerDown = () => {
     if (isAiChat) return;
-    isLongPressHandled.current = false;
+    isActionTriggered.current = false;
     longPressTimer.current = setTimeout(() => {
-        setIsDeleteDialogOpen(true);
-        isLongPressHandled.current = true;
+        if ('vibrate' in navigator) navigator.vibrate(50);
+        onEnterSelectionMode(chat);
+        isActionTriggered.current = true;
     }, 500); // 500ms for long press
   };
 
   const handlePointerUp = () => {
     clearTimeout(longPressTimer.current);
   };
-  
-  const handlePointerLeave = () => {
+
+  const handlePointerMove = () => {
       clearTimeout(longPressTimer.current);
-  }
-
-  const lastMessage = chat.lastMessage;
-
-  const getLastMessagePreview = () => {
-    if (!lastMessage) return "No messages yet.";
-    
-    const text = lastMessage.text || '';
-    
-    switch (lastMessage.type) {
-        case 'image':
-            return <span className="flex items-center gap-1.5"><ImageIcon className="h-4 w-4" />{text || 'Photo'}</span>;
-        case 'video':
-            return <span className="flex items-center gap-1.5"><Video className="h-4 w-4" />{text || 'Video'}</span>;
-        case 'file':
-            return <span className="flex items-center gap-1.5"><FileText className="h-4 w-4" />{text || 'File'}</span>;
-        case 'audio':
-             return <span className="flex items-center gap-1.5"><Mic className="h-4 w-4" />{text || 'Voice message'}</span>;
-        case 'text':
-        default:
-            return <span className="flex items-center gap-1.5">
-                {lastMessage?.senderUid === currentUser.uid && <CheckCheck className="h-4 w-4 text-primary" />}
-                {text}
-            </span>;
-    }
   };
-  
-  const otherUserName = isAiChat ? 'ByteChat AI' : (chat.nicknames?.[otherUserUid!] || otherUser?.name);
 
   const handleSelect = () => {
     onChatSelect({
@@ -140,25 +106,43 @@ function ChatListItem({ chat, currentUser, onChatSelect }: ChatListItemProps) {
   }
 
   const handleClick = () => {
-    if (!isLongPressHandled.current) {
-        handleSelect();
+    if (isActionTriggered.current) return;
+
+    if (selectionMode) {
+      onSelectChat(chat);
+    } else {
+      handleSelect();
     }
   };
 
-  const handleDeleteChat = async () => {
-      if (isAiChat) return;
-      try {
-          // Note: This deletes the chat document but not its subcollections (messages).
-          // A Cloud Function would be needed for a full cleanup.
-          await deleteDoc(doc(db, "chats", chat.id));
-          toast({ title: "Chat Deleted", description: "The chat has been removed from your list." });
-      } catch (error) {
-          console.error("Error deleting chat:", error);
-          toast({ variant: "destructive", title: "Error", description: "Could not delete the chat." });
-      }
-      setIsDeleteDialogOpen(false);
-  };
 
+  const lastMessage = chat.lastMessage;
+
+  const getLastMessagePreview = () => {
+    if (!lastMessage) return "No messages yet.";
+    
+    const text = lastMessage.text || '';
+    
+    const senderPrefix = lastMessage.senderUid === currentUser.uid 
+        ? <CheckCheck className="h-4 w-4 text-primary mr-1 shrink-0" />
+        : null;
+
+    switch (lastMessage.type) {
+        case 'image':
+            return <span className="flex items-center gap-1.5">{senderPrefix}<ImageIcon className="h-4 w-4" />{text || 'Photo'}</span>;
+        case 'video':
+            return <span className="flex items-center gap-1.5">{senderPrefix}<Video className="h-4 w-4" />{text || 'Video'}</span>;
+        case 'file':
+            return <span className="flex items-center gap-1.5">{senderPrefix}<FileText className="h-4 w-4" />{text || 'File'}</span>;
+        case 'audio':
+             return <span className="flex items-center gap-1.5">{senderPrefix}<Mic className="h-4 w-4" />{text || 'Voice message'}</span>;
+        case 'text':
+        default:
+            return <span className="flex items-center gap-1.5">{senderPrefix}{text}</span>;
+    }
+  };
+  
+  const otherUserName = isAiChat ? 'ByteChat AI' : (chat.nicknames?.[otherUserUid!] || otherUser?.name);
 
   if (!isAiChat && !otherUser) {
      return null;
@@ -167,17 +151,21 @@ function ChatListItem({ chat, currentUser, onChatSelect }: ChatListItemProps) {
   const unreadCount = chat.unreadCounts?.[currentUser.uid] ?? 0;
 
   return (
-    <>
-        <button 
-            onClick={handleClick}
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-            onPointerLeave={handlePointerLeave}
-            onContextMenu={(e) => e.preventDefault()}
-            className="w-full text-left p-2 rounded-xl hover:bg-accent transition-colors"
-        >
-        <div className="flex items-center gap-4">
-            <UserAvatar 
+    <div
+        onClick={handleClick}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerMove={handlePointerMove}
+        onContextMenu={(e) => { e.preventDefault(); if(!isAiChat) onEnterSelectionMode(chat) }}
+        className={cn(
+            "w-full text-left p-2 rounded-xl transition-colors relative",
+            isSelected ? "bg-primary/10" : "hover:bg-accent"
+        )}
+        style={{ WebkitTouchCallout: 'none' }}
+    >
+      <div className="flex items-center gap-4">
+          <div className="relative">
+             <UserAvatar 
                 name={otherUserName || ''} 
                 avatarUrl={isAiChat ? '/bytechat-logo.png' : otherUser?.avatar} 
                 status={isAiChat ? undefined : otherUser?.status}
@@ -185,46 +173,48 @@ function ChatListItem({ chat, currentUser, onChatSelect }: ChatListItemProps) {
                 ringColor={unreadCount > 0 ? 'ring-primary' : 'ring-transparent'} 
                 data-ai-hint={isAiChat ? "robot bot" : ""}
             />
-            <div className="flex-1 truncate">
-            <div className="flex justify-between items-center">
-                <h3 className="font-bold truncate">{otherUserName}</h3>
-                <p className="text-xs text-muted-foreground">{formatTimestamp(lastMessage?.timestamp)}</p>
-            </div>
-            <div className="flex justify-between items-start mt-1">
-                <div className="text-sm text-muted-foreground truncate">
-                    {getLastMessagePreview()}
-                </div>
-                {unreadCount > 0 && (
-                    <Badge className="h-6 w-6 flex items-center justify-center p-0 rounded-full">{unreadCount}</Badge>
-                )}
-            </div>
-            </div>
-        </div>
-        </button>
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Delete Chat?</AlertDialogTitle>
-                <AlertDialogDescription>
-                Are you sure you want to delete this chat with {otherUserName}? This action cannot be undone.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                    className={buttonVariants({ variant: "destructive" })}
-                    onClick={handleDeleteChat}
+            <AnimatePresence>
+              {isSelected && (
+                <motion.div 
+                  className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
                 >
-                    Delete
-                </AlertDialogAction>
-            </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-    </>
+                  <CheckCircle className="h-7 w-7 text-white" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          <div className="flex-1 truncate">
+          <div className="flex justify-between items-center">
+              <h3 className="font-bold truncate">{otherUserName}</h3>
+              <p className="text-xs text-muted-foreground">{formatTimestamp(lastMessage?.timestamp)}</p>
+          </div>
+          <div className="flex justify-between items-start mt-1">
+              <div className="text-sm text-muted-foreground truncate flex items-center">
+                  {getLastMessagePreview()}
+              </div>
+              {unreadCount > 0 && (
+                  <Badge className="h-6 w-6 flex items-center justify-center p-0 rounded-full">{unreadCount}</Badge>
+              )}
+          </div>
+          </div>
+      </div>
+    </div>
   );
 }
 
-export function ChatList({ onChatSelect }: { onChatSelect: (chat: any) => void }) {
+type ChatListProps = {
+  onChatSelect: (chat: any) => void;
+  selectionMode: boolean;
+  selectedChats: Chat[];
+  onSelectChat: (chat: Chat) => void;
+  onEnterSelectionMode: (chat: Chat) => void;
+};
+
+
+export function ChatList({ onChatSelect, selectionMode, selectedChats, onSelectChat, onEnterSelectionMode }: ChatListProps) {
   const { userProfile } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
 
@@ -239,7 +229,6 @@ export function ChatList({ onChatSelect }: { onChatSelect: (chat: any) => void }
       querySnapshot.forEach((doc) => {
         userChats.push({ id: doc.id, ...doc.data() } as Chat);
       });
-      // Sort by last message timestamp
       userChats.sort((a, b) => {
         const timeA = a.lastMessage?.timestamp?.toMillis() || a.updatedAt?.toMillis() || 0;
         const timeB = b.lastMessage?.timestamp?.toMillis() || b.updatedAt?.toMillis() || 0;
@@ -279,7 +268,16 @@ export function ChatList({ onChatSelect }: { onChatSelect: (chat: any) => void }
   return (
     <div className="space-y-2">
       {chats.map((chat) => (
-        <ChatListItem key={chat.id} chat={chat} currentUser={userProfile!} onChatSelect={onChatSelect} />
+        <ChatListItem 
+            key={chat.id} 
+            chat={chat} 
+            currentUser={userProfile!} 
+            onChatSelect={onChatSelect}
+            selectionMode={selectionMode}
+            isSelected={selectedChats.some(c => c.id === chat.id)}
+            onSelectChat={onSelectChat}
+            onEnterSelectionMode={onEnterSelectionMode}
+        />
       ))}
     </div>
   );
