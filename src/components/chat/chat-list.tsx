@@ -19,7 +19,6 @@ import { Skeleton } from '../ui/skeleton';
 import { Check, CheckCheck, Image as ImageIcon, Video, FileText, Mic } from 'lucide-react';
 import type { UserProfile } from '@/contexts/auth-context';
 import { LottieAnimation } from '../lottie-animation';
-import PullToRefresh from 'react-pull-to-refresh';
 import { toast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -268,12 +267,6 @@ export function ChatList({ onChatSelect }: { onChatSelect: (chat: any) => void }
     return () => unsubscribe();
   }, [userProfile?.uid]);
 
-  const handleRefresh = async () => {
-    // In a real app, you might re-fetch data here.
-    // For now, we just show a toast.
-    toast({ title: "Chats refreshed!" });
-  }
-
   if (chats.length <= 1) { // only AI chat
     return (
         <div className="text-center text-muted-foreground py-10 flex flex-col items-center">
@@ -284,12 +277,10 @@ export function ChatList({ onChatSelect }: { onChatSelect: (chat: any) => void }
   }
 
   return (
-    <PullToRefresh onRefresh={handleRefresh}>
-        <div className="space-y-2">
-        {chats.map((chat) => (
-            <ChatListItem key={chat.id} chat={chat} currentUser={userProfile!} onChatSelect={onChatSelect} />
-        ))}
-        </div>
-    </PullToRefresh>
+    <div className="space-y-2">
+      {chats.map((chat) => (
+        <ChatListItem key={chat.id} chat={chat} currentUser={userProfile!} onChatSelect={onChatSelect} />
+      ))}
+    </div>
   );
 }
