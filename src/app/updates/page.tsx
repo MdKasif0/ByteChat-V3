@@ -142,6 +142,7 @@ export default function UpdatesPage() {
                             <p className="font-bold">My Status</p>
                             <p className="text-sm text-muted-foreground">Tap to add a status update</p>
                         </div>
+                        <Camera className="h-6 w-6 text-muted-foreground" />
                     </button>
                     
                     <Separator />
@@ -180,5 +181,3 @@ export default function UpdatesPage() {
         </MobileLayout>
     );
 }
-
-    
