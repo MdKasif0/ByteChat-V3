@@ -3,12 +3,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Phone, Settings, MessagesSquare, GalleryVertical } from 'lucide-react';
+import { Phone, Settings, MessagesSquare, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
     { href: '/chat', icon: MessagesSquare, label: 'Chat' },
-    { href: '/updates', icon: GalleryVertical, label: 'Updates' },
+    { href: '/updates', icon: Camera, label: 'Updates' },
     { href: '/calls', icon: Phone, label: 'Calls' },
     { href: '/settings', icon: Settings, label: 'Settings' },
 ];
