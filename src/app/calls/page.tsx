@@ -2,8 +2,8 @@
 'use client';
 
 import { MobileLayout } from '@/components/layout/mobile-layout';
-import { Phone, Video, ArrowUpRight, ArrowDownLeft, Search, MoreVertical, Plus } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Phone, Video, ArrowUpRight, ArrowDownLeft, Search, MoreVertical, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth, UserProfile } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
@@ -15,6 +15,8 @@ import { LottieAnimation } from '@/components/lottie-animation';
 import { cn } from '@/lib/utils';
 import { formatCallTimestamp } from '@/lib/date-utils';
 import { useRouter } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
 
 interface CallLog {
     id: string;
@@ -89,6 +91,17 @@ export default function CallsPage() {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isSearchOpen) {
+            setTimeout(() => {
+                searchInputRef.current?.focus();
+            }, 100);
+        }
+    }, [isSearchOpen]);
+
     useEffect(() => {
         if (!userProfile) return;
 
@@ -119,15 +132,59 @@ export default function CallsPage() {
 
   return (
     <MobileLayout onChatSelect={handleChatSelect}>
-      <header className="flex items-center justify-between p-4">
-        <h1 className="text-3xl font-bold">Calls</h1>
-        <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-muted-foreground">
-                <Search className="h-5 w-5" />
+      <header className="flex items-center justify-between p-4 transition-all duration-300">
+         <AnimatePresence>
+            {!isSearchOpen && (
+                <motion.div
+                    key="title"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="flex-1"
+                >
+                    <h1 className="text-3xl font-bold">Calls</h1>
+                </motion.div>
+            )}
+        </AnimatePresence>
+        {isSearchOpen && (
+            <motion.div
+                key="search-input"
+                initial={{ opacity: 0, width: '0%' }}
+                animate={{ opacity: 1, width: '100%' }}
+                exit={{ opacity: 0, width: '0%' }}
+                className="flex-1"
+            >
+                <Input
+                    ref={searchInputRef}
+                    placeholder="Search calls..."
+                    className="h-10 rounded-full bg-muted border-none w-full focus-visible:ring-2 focus-visible:ring-primary"
+                />
+            </motion.div>
+        )}
+        <div className="flex items-center gap-1 pl-2">
+            <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-10 w-10 text-muted-foreground"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+                {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-muted-foreground">
-                <MoreVertical className="h-5 w-5" />
-            </Button>
+            <AnimatePresence>
+            {!isSearchOpen && (
+                <motion.div
+                    key="more-button"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-muted-foreground">
+                        <MoreVertical className="h-5 w-5" />
+                    </Button>
+                </motion.div>
+            )}
+            </AnimatePresence>
         </div>
       </header>
       <main className="flex-1 pb-24">
@@ -153,5 +210,3 @@ export default function CallsPage() {
     </MobileLayout>
   );
 }
-
-    

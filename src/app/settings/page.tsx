@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -25,12 +26,16 @@ import {
   Sun,
   Moon,
   Laptop,
-  Code
+  Code,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type React from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { MobileLayout } from '@/components/layout/mobile-layout';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
 
 const SettingsItem = ({
   icon,
@@ -76,6 +81,17 @@ export default function SettingsPage() {
     const { theme, setTheme } = useTheme();
     const { toast } = useToast();
 
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isSearchOpen) {
+            setTimeout(() => {
+                searchInputRef.current?.focus();
+            }, 100);
+        }
+    }, [isSearchOpen]);
+
     if (!userProfile) return null;
 
     const handleInviteClick = async () => {
@@ -119,14 +135,48 @@ export default function SettingsPage() {
 
   return (
     <MobileLayout onChatSelect={handleChatSelect}>
-        <header className="flex items-center p-3 border-b border-border/10 shrink-0">
-            <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full">
-                <ChevronLeft className="h-6 w-6" />
-            </Button>
-            <h1 className="text-xl font-semibold ml-2">Settings</h1>
-            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full ml-auto">
-                <Search />
-            </Button>
+        <header className="flex items-center justify-between p-3 border-b border-border/10 shrink-0 transition-all duration-300">
+             <AnimatePresence>
+                {!isSearchOpen && (
+                    <motion.div
+                        key="title"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="flex-1 flex items-center"
+                    >
+                        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full">
+                            <ChevronLeft className="h-6 w-6" />
+                        </Button>
+                        <h1 className="text-xl font-semibold ml-2">Settings</h1>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            {isSearchOpen && (
+                <motion.div
+                    key="search-input"
+                    initial={{ opacity: 0, width: '0%' }}
+                    animate={{ opacity: 1, width: '100%' }}
+                    exit={{ opacity: 0, width: '0%' }}
+                    className="flex-1"
+                >
+                    <Input
+                        ref={searchInputRef}
+                        placeholder="Search settings..."
+                        className="h-10 rounded-full bg-muted border-none w-full focus-visible:ring-2 focus-visible:ring-primary"
+                    />
+                </motion.div>
+            )}
+            <div className="flex items-center pl-2">
+                 <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full"
+                    onClick={() => setIsSearchOpen(!isSearchOpen)}
+                >
+                    {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                </Button>
+            </div>
         </header>
 
         <main className="flex-1">
