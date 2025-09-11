@@ -340,7 +340,7 @@ function ChatPageContent() {
                             <Plus className="h-5 w-5" />
                         </Button>
                     </div>
-                    <TabsContent value="all" className="mt-4 px-4 flex-1 overflow-y-auto">
+                    <TabsContent value="all" className="mt-4 px-4 flex-1 overflow-y-auto pb-24">
                         <ChatList 
                             onChatSelect={setActiveChat} 
                             selectionMode={selectionMode}
