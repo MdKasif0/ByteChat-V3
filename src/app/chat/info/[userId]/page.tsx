@@ -18,7 +18,7 @@ import {
   Lock,
   Clock,
   ShieldAlert,
-  Slash,
+  Ban,
   Trash2,
   ChevronRight,
   FileText
@@ -237,7 +237,7 @@ export default function ContactInfoPage() {
                  <Separator className="my-4"/>
 
                  <div className="px-4 space-y-1">
-                    <SettingsItem icon={Slash} title={`Block "${otherUser.name}"`} isDestructive />
+                    <SettingsItem icon={Ban} title={`Block "${otherUser.name}"`} isDestructive />
                     <SettingsItem icon={ShieldAlert} title={`Report "${otherUser.name}"`} isDestructive />
                     <SettingsItem icon={Trash2} title="Delete chat" isDestructive />
                 </div>
