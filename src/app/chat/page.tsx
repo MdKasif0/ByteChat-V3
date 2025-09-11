@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
-import { Search, MoreVertical, X, Users, Star, Settings, QrCode, UserPlus, Pin, Archive, Trash2 } from 'lucide-react';
+import { Search, MoreVertical, X, Users, Star, Settings, QrCode, UserPlus, Pin, Archive, Trash2, Plus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChatList, Chat } from '@/components/chat/chat-list';
 import { ChatView } from '@/components/chat/chat-view';
@@ -19,7 +19,6 @@ import { db } from '@/lib/firebase';
 import { LoadingScreen } from '@/components/loading-screen';
 import { usePeer } from '@/contexts/peer-context';
 import { NewChatDialog } from '@/components/chat/new-chat-dialog';
-import { toast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -330,12 +329,17 @@ function ChatPageContent() {
             </AnimatePresence>
             <main className="flex-1 flex flex-col min-h-0 bg-card md:rounded-t-3xl shadow-t-xl mt-4">
                 <Tabs defaultValue="all" className="w-full pt-4 flex flex-col flex-1">
-                    <TabsList className="mx-auto flex w-fit bg-transparent px-2 space-x-2 shrink-0">
-                        <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">All</TabsTrigger>
-                        <TabsTrigger value="groups" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Groups</TabsTrigger>
-                        <TabsTrigger value="contacts" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Contacts</TabsTrigger>
-                        <TabsTrigger value="archive" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Archive</TabsTrigger>
-                    </TabsList>
+                    <div className="flex items-center px-4">
+                        <TabsList className="flex-1 justify-start w-fit bg-transparent px-2 space-x-2 shrink-0 overflow-x-auto">
+                            <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">All</TabsTrigger>
+                            <TabsTrigger value="unread" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Unread</TabsTrigger>
+                            <TabsTrigger value="favourites" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Favourites</TabsTrigger>
+                            <TabsTrigger value="groups" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Groups</TabsTrigger>
+                        </TabsList>
+                         <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 shrink-0">
+                            <Plus className="h-5 w-5" />
+                        </Button>
+                    </div>
                     <TabsContent value="all" className="mt-4 px-4 flex-1 overflow-y-auto">
                         <ChatList 
                             onChatSelect={setActiveChat} 
@@ -345,14 +349,14 @@ function ChatPageContent() {
                             onEnterSelectionMode={handleEnterSelectionMode}
                         />
                     </TabsContent>
+                     <TabsContent value="unread" className="mt-4 px-4 flex-1 overflow-y-auto">
+                        <div className="text-center text-muted-foreground pt-10">Unread chats coming soon!</div>
+                    </TabsContent>
+                     <TabsContent value="favourites" className="mt-4 px-4 flex-1 overflow-y-auto">
+                        <div className="text-center text-muted-foreground pt-10">Favourite chats coming soon!</div>
+                    </TabsContent>
                      <TabsContent value="groups" className="mt-4 px-4 flex-1 overflow-y-auto">
                         <div className="text-center text-muted-foreground pt-10">Groups coming soon!</div>
-                    </TabsContent>
-                     <TabsContent value="contacts" className="mt-4 px-4 flex-1 overflow-y-auto">
-                        <div className="text-center text-muted-foreground pt-10">Contacts coming soon!</div>
-                    </TabsContent>
-                     <TabsContent value="archive" className="mt-4 px-4 flex-1 overflow-y-auto">
-                         <div className="text-center text-muted-foreground pt-10">Archived chats coming soon!</div>
                     </TabsContent>
                 </Tabs>
             </main>
@@ -388,3 +392,5 @@ export default function ChatPage() {
         </Suspense>
     );
 }
+
+    
