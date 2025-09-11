@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { buttonVariants } from '../ui/button';
+import { buttonVariants } from '@/components/ui/button';
 
 const HomeHeader = ({ onNewChat }: { onNewChat: (chat: any) => void }) => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
