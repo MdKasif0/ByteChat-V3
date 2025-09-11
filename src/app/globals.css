@@ -104,3 +104,13 @@
         @apply absolute left-0 top-0 h-full w-1 rounded-full bg-primary/50;
     }
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
