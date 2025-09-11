@@ -79,8 +79,13 @@ function CallLogItem({ log, currentUser }: { log: CallLog, currentUser: UserProf
                     <span>{formatCallTimestamp(log.createdAt.toDate())}</span>
                 </div>
             </div>
-            <Button onClick={handleCallBack} variant="ghost" size="icon" className="text-muted-foreground hover:text-primary h-10 w-10 rounded-full">
-                {log.type === 'video' ? <Video className="h-5 w-5"/> : <Phone className="h-5 w-5"/>}
+            <Button 
+                onClick={handleCallBack} 
+                variant="outline" 
+                size="icon" 
+                className="bg-primary/10 border-primary/20 text-primary hover:bg-primary/20 hover:text-primary h-12 w-12 rounded-full"
+            >
+                {log.type === 'video' ? <Video className="h-6 w-6"/> : <Phone className="h-6 w-6"/>}
             </Button>
         </div>
     )
