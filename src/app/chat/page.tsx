@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
-import { Search, MoreVertical, X, Users, Star, Settings, QrCode, PlusCircle, Plus } from 'lucide-react';
+import { Search, MoreVertical, X, Users, Star, Settings, QrCode, Plus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChatList } from '@/components/chat/chat-list';
 import { ChatView } from '@/components/chat/chat-view';
@@ -249,6 +249,13 @@ function ChatPageContent() {
                 </div>
             </main>
         </div>
+         <div className="fixed bottom-24 right-6 z-10">
+            <NewChatDialog onChatSelect={setActiveChat}>
+                <Button size="icon" className="rounded-2xl h-16 w-16 bg-primary shadow-lg">
+                    <Plus className="h-7 w-7" />
+                </Button>
+            </NewChatDialog>
+        </div>
     </MobileLayout>
   );
 }
@@ -260,5 +267,7 @@ export default function ChatPage() {
         </Suspense>
     );
 }
+
+    
 
     

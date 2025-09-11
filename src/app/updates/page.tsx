@@ -1,3 +1,4 @@
+
 'use client';
 
 import { MobileLayout } from '@/components/layout/mobile-layout';
@@ -110,3 +111,5 @@ export default function UpdatesPage() {
         </MobileLayout>
     );
 }
+
+    
