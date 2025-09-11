@@ -5,9 +5,13 @@ import { MobileLayout } from '@/components/layout/mobile-layout';
 import { UserAvatar } from '@/components/user-avatar';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
-import { Camera, Plus } from 'lucide-react';
+import { Camera, Plus, Search, QrCode, MoreVertical, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // Mock data for statuses
 const recentUpdates = [
@@ -22,6 +26,17 @@ const viewedUpdates = [
 export default function UpdatesPage() {
     const { userProfile } = useAuth();
     const router = useRouter();
+
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isSearchOpen) {
+            setTimeout(() => {
+                searchInputRef.current?.focus();
+            }, 100);
+        }
+    }, [isSearchOpen]);
 
     const handleAddStatus = () => {
         // This would open a camera/gallery view in a real app
@@ -41,11 +56,73 @@ export default function UpdatesPage() {
 
     return (
         <MobileLayout onChatSelect={handleChatSelect}>
-            <header className="flex items-center justify-between p-4">
-                <h1 className="text-3xl font-bold">Updates</h1>
-                <Button variant="ghost" size="icon" className="rounded-full h-10 w-10">
-                    <Camera className="h-5 w-5" />
-                </Button>
+            <header className="flex items-center justify-between p-4 transition-all duration-300">
+                <AnimatePresence>
+                    {!isSearchOpen && (
+                        <motion.div
+                            key="title"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="flex-1"
+                        >
+                            <h1 className="text-3xl font-bold">Updates</h1>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+                {isSearchOpen && (
+                    <motion.div
+                        key="search-input"
+                        initial={{ opacity: 0, width: '0%' }}
+                        animate={{ opacity: 1, width: '100%' }}
+                        exit={{ opacity: 0, width: '0%' }}
+                        className="flex-1"
+                    >
+                        <Input
+                            ref={searchInputRef}
+                            placeholder="Search updates..."
+                            className="h-10 rounded-full bg-muted border-none w-full focus-visible:ring-2 focus-visible:ring-primary"
+                        />
+                    </motion.div>
+                )}
+                <div className="flex items-center gap-1 pl-2">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full h-10 w-10"
+                        onClick={() => setIsSearchOpen(!isSearchOpen)}
+                    >
+                        {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                    </Button>
+                    <AnimatePresence>
+                    {!isSearchOpen && (
+                        <motion.div
+                            key="action-buttons"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex items-center gap-1"
+                        >
+                            <Button variant="outline" size="icon" className="rounded-full h-10 w-10" onClick={() => router.push('/settings/qrcode')}>
+                                <QrCode className="h-5 w-5" />
+                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
+                                        <MoreVertical className="h-5 w-5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem>
+                                        <span>Settings</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </motion.div>
+                    )}
+                    </AnimatePresence>
+                </div>
             </header>
 
             <main className="px-2">

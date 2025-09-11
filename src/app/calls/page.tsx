@@ -2,7 +2,7 @@
 'use client';
 
 import { MobileLayout } from '@/components/layout/mobile-layout';
-import { Phone, Video, ArrowUpRight, ArrowDownLeft, Search, MoreVertical, X } from 'lucide-react';
+import { Phone, Video, ArrowUpRight, ArrowDownLeft, Search, MoreVertical, X, QrCode } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth, UserProfile } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase';
@@ -17,6 +17,7 @@ import { formatCallTimestamp } from '@/lib/date-utils';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface CallLog {
     id: string;
@@ -163,9 +164,9 @@ export default function CallsPage() {
         )}
         <div className="flex items-center gap-1 pl-2">
             <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className="rounded-full h-10 w-10 text-muted-foreground"
+                className="rounded-full h-10 w-10"
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
             >
                 {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
@@ -173,15 +174,31 @@ export default function CallsPage() {
             <AnimatePresence>
             {!isSearchOpen && (
                 <motion.div
-                    key="more-button"
+                    key="action-buttons"
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
+                    className="flex items-center gap-1"
                 >
-                    <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-muted-foreground">
-                        <MoreVertical className="h-5 w-5" />
+                    <Button variant="outline" size="icon" className="rounded-full h-10 w-10" onClick={() => router.push('/settings/qrcode')}>
+                        <QrCode className="h-5 w-5" />
                     </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
+                                <MoreVertical className="h-5 w-5" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                                <span>Clear call log</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => router.push('/settings')}>
+                                <span>Settings</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </motion.div>
             )}
             </AnimatePresence>

@@ -27,7 +27,8 @@ import {
   Moon,
   Laptop,
   Code,
-  X
+  X,
+  MoreVertical
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type React from 'react';
@@ -36,6 +37,7 @@ import { useToast } from '@/hooks/use-toast';
 import { MobileLayout } from '@/components/layout/mobile-layout';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const SettingsItem = ({
   icon,
@@ -135,7 +137,7 @@ export default function SettingsPage() {
 
   return (
     <MobileLayout onChatSelect={handleChatSelect}>
-        <header className="flex items-center justify-between p-3 border-b border-border/10 shrink-0 transition-all duration-300">
+        <header className="flex items-center justify-between p-4 transition-all duration-300">
              <AnimatePresence>
                 {!isSearchOpen && (
                     <motion.div
@@ -143,12 +145,9 @@ export default function SettingsPage() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex-1 flex items-center"
+                        className="flex-1"
                     >
-                        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full">
-                            <ChevronLeft className="h-6 w-6" />
-                        </Button>
-                        <h1 className="text-xl font-semibold ml-2">Settings</h1>
+                        <h1 className="text-3xl font-bold">Settings</h1>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -167,15 +166,43 @@ export default function SettingsPage() {
                     />
                 </motion.div>
             )}
-            <div className="flex items-center pl-2">
+            <div className="flex items-center gap-1 pl-2">
                  <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
-                    className="h-10 w-10 rounded-full"
+                    className="rounded-full h-10 w-10"
                     onClick={() => setIsSearchOpen(!isSearchOpen)}
                 >
                     {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
                 </Button>
+                <AnimatePresence>
+                {!isSearchOpen && (
+                     <motion.div
+                        key="action-buttons"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center gap-1"
+                    >
+                        <Button variant="outline" size="icon" className="rounded-full h-10 w-10" onClick={() => router.push('/settings/qrcode')}>
+                            <QrCode className="h-5 w-5" />
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => router.push('/settings/profile')}>
+                                    <span>Edit Profile</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </motion.div>
+                )}
+                </AnimatePresence>
             </div>
         </header>
 
@@ -192,9 +219,6 @@ export default function SettingsPage() {
                             <p className="text-sm text-muted-foreground">{userProfile.customStatus || 'Available'}</p>
                         </div>
                     </button>
-                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => router.push('/settings/qrcode')}>
-                        <QrCode />
-                    </Button>
                 </div>
 
                 <Separator className="my-2 bg-border/10" />
