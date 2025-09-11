@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
-import { Search, MoreVertical, X, Users, Star, Settings, QrCode, PlusCircle } from 'lucide-react';
+import { Search, MoreVertical, X, Users, Star, Settings, QrCode, PlusCircle, Plus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChatList } from '@/components/chat/chat-list';
 import { ChatView } from '@/components/chat/chat-view';
@@ -84,12 +84,6 @@ const HomeHeader = ({ onNewChat }: { onNewChat: (chat: any) => void }) => {
                         transition={{ duration: 0.2 }}
                         className="flex items-center gap-1"
                     >
-                        <NewChatDialog onChatSelect={onNewChat}>
-                           <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
-                                <PlusCircle className="h-5 w-5" />
-                            </Button>
-                        </NewChatDialog>
-
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
@@ -250,6 +244,13 @@ function ChatPageContent() {
                 </div>
             </main>
         </div>
+        <NewChatDialog onChatSelect={setActiveChat}>
+            <div className="fixed bottom-24 right-6 z-10">
+                <Button size="icon" className="rounded-2xl h-16 w-16 bg-primary hover:bg-primary/90 shadow-lg">
+                    <Plus className="h-8 w-8" />
+                </Button>
+            </div>
+        </NewChatDialog>
     </MobileLayout>
   );
 }
@@ -261,3 +262,5 @@ export default function ChatPage() {
         </Suspense>
     );
 }
+
+    

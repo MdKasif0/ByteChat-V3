@@ -1,8 +1,9 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Phone, Settings, MessageCircle } from 'lucide-react';
+import { Phone, Settings, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PremiumStatusIcon } from '../icons/premium-status-icon';
 
@@ -44,3 +45,5 @@ export function BottomNav({ onChatSelect }: { onChatSelect: (chat: any) => void;
     </div>
   );
 }
+
+    
