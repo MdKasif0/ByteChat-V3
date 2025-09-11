@@ -330,7 +330,7 @@ function ChatPageContent() {
             <main className="flex-1 flex flex-col min-h-0 bg-card md:rounded-t-3xl shadow-t-xl mt-4">
                 <Tabs defaultValue="all" className="w-full pt-4 flex flex-col flex-1">
                     <div className="flex items-center px-4">
-                        <TabsList className="flex-1 justify-start w-fit bg-transparent px-2 space-x-2 shrink-0 overflow-x-auto">
+                        <TabsList className="flex-1 justify-start w-fit bg-transparent px-2 space-x-2 shrink-0">
                             <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">All</TabsTrigger>
                             <TabsTrigger value="unread" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Unread</TabsTrigger>
                             <TabsTrigger value="favourites" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground px-4">Favourites</TabsTrigger>
