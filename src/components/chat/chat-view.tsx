@@ -3,7 +3,7 @@
 
 import { UserAvatar } from "@/components/user-avatar";
 import { Button } from "@/components/ui/button";
-import { Phone, Video, MoreVertical, ChevronLeft, Pencil, Trash2, X } from "lucide-react";
+import { Phone, Video, MoreVertical, ChevronLeft, Pencil, Trash2, X, Info } from "lucide-react";
 import { MessageList, Message } from "./message-list";
 import { MessageInput } from "./message-input";
 import type { UserProfile } from "@/contexts/auth-context";
@@ -316,12 +316,8 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
             // Case 1: Audio message
             if (audioData && files.length > 0) {
                 const audioFile = files[0];
-                if (!otherUser?.peerId) {
-                    toast({ variant: 'destructive', title: 'Cannot Send File', description: 'User is not available for file transfer.' });
-                    return;
-                }
                 try {
-                    const fileMetadata = await sendFile(otherUser.peerId, audioFile);
+                    const fileMetadata = await sendFile(otherUser?.peerId ?? '', audioFile);
                     let messageData: Partial<Message> = {
                         senderUid: currentUser.uid,
                         timestamp: serverTimestamp() as Timestamp,
@@ -647,7 +643,7 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                              <DropdownMenuItem onClick={handleHeaderClick}>
-                                <Pencil className="mr-2 h-4 w-4" />
+                                <Info className="mr-2 h-4 w-4" />
                                 <span>Contact Info</span>
                             </DropdownMenuItem>
                              {!isAiChat && (
