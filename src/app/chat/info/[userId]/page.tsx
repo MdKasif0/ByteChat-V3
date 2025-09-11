@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth, UserProfile } from '@/contexts/auth-context';
 import { db } from '@/lib/firebase';
-import { collection, doc, onSnapshot, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, where, getDocs, limit, orderBy, updateDoc } from 'firebase/firestore';
 import { UserAvatar } from '@/components/user-avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +22,8 @@ import {
   Ban,
   Trash2,
   ChevronRight,
-  FileText
+  FileText,
+  Pencil
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { usePeer } from '@/contexts/peer-context';
@@ -32,6 +33,9 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { getFile } from '@/lib/indexed-db';
 import type { Message } from '@/components/chat/message-list';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const InfoPageSkeleton = () => (
   <div className="flex flex-col h-screen bg-background">
@@ -116,6 +120,9 @@ export default function ContactInfoPage() {
     const [otherUser, setOtherUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [media, setMedia] = useState<Message[]>([]);
+    const [chatData, setChatData] = useState<any>(null);
+    const [nicknameDialogOpen, setNicknameDialogOpen] = useState(false);
+    const [newNickname, setNewNickname] = useState('');
 
     const chatId = useMemo(() => {
         if (!currentUser || !userId) return null;
@@ -137,6 +144,20 @@ export default function ContactInfoPage() {
         });
         return () => unsubscribe();
     }, [userId, router]);
+    
+     useEffect(() => {
+        if (!chatId) return;
+        const chatDocRef = doc(db, 'chats', chatId);
+        const unsubscribe = onSnapshot(chatDocRef, (doc) => {
+            if(doc.exists()) {
+                const data = doc.data();
+                setChatData(data);
+                const currentNickname = data.nicknames?.[userId] || '';
+                setNewNickname(currentNickname);
+            }
+        });
+        return () => unsubscribe();
+    }, [chatId, userId]);
 
     useEffect(() => {
         if (!chatId) return;
@@ -174,9 +195,25 @@ export default function ContactInfoPage() {
         }
     };
     
+    const handleSaveNickname = async () => {
+        if (!chatId || !userId) return;
+        const chatDocRef = doc(db, 'chats', chatId);
+        try {
+            await updateDoc(chatDocRef, {
+                [`nicknames.${userId}`]: newNickname
+            });
+            toast({ title: "Nickname updated!" });
+            setNicknameDialogOpen(false);
+        } catch (error) {
+            toast({ variant: 'destructive', title: "Error", description: "Could not update nickname." });
+        }
+    };
+
     if (loading || !otherUser) {
         return <InfoPageSkeleton />;
     }
+    
+    const displayName = chatData?.nicknames?.[userId] || otherUser.name;
 
     return (
         <div className="flex flex-col h-screen bg-background text-foreground">
@@ -193,8 +230,8 @@ export default function ContactInfoPage() {
 
             <main className="flex-1 overflow-y-auto">
                 <div className="flex flex-col items-center text-center pt-8 pb-6 px-6">
-                    <UserAvatar name={otherUser.name} avatarUrl={otherUser.avatar} className="h-28 w-28 text-4xl mb-4" />
-                    <h2 className="text-3xl font-bold">{otherUser.name}</h2>
+                    <UserAvatar name={displayName} avatarUrl={otherUser.avatar} className="h-28 w-28 text-4xl mb-4" />
+                    <h2 className="text-3xl font-bold">{displayName}</h2>
                     <p className="text-muted-foreground mt-1">@{otherUser.username}</p>
                 </div>
 
@@ -213,6 +250,17 @@ export default function ContactInfoPage() {
                     </Button>
                 </div>
                 
+                <Separator className="my-4"/>
+
+                <div className="px-4 space-y-1">
+                     <SettingsItem 
+                        icon={Pencil} 
+                        title="Nickname" 
+                        subtitle={chatData?.nicknames?.[userId] || 'Not set'}
+                        onClick={() => setNicknameDialogOpen(true)}
+                     />
+                </div>
+
                 <Separator className="my-4"/>
 
                 {media.length > 0 && (
@@ -250,6 +298,32 @@ export default function ContactInfoPage() {
                 <div className="h-8"></div>
 
             </main>
+            
+            <Dialog open={nicknameDialogOpen} onOpenChange={setNicknameDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Change Nickname</DialogTitle>
+                        <DialogDescription>
+                            Set a new nickname for {otherUser.name}. This is only visible in this chat.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="nickname" className="text-right">Nickname</Label>
+                            <Input 
+                                id="nickname" 
+                                value={newNickname}
+                                onChange={(e) => setNewNickname(e.target.value)}
+                                className="col-span-3"
+                                placeholder={otherUser.name}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleSaveNickname}>Save</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -175,9 +175,11 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
         const chatDocRef = doc(db!, 'chats', chat.id);
         const unsubscribe = onSnapshot(chatDocRef, (doc) => {
             setChatData(doc.data());
+             const currentNickname = doc.data()?.nicknames?.[otherUserUid] || '';
+            setNewNickname(currentNickname);
         });
         return () => unsubscribe();
-    }, [chat.id, isAiChat]);
+    }, [chat.id, isAiChat, otherUserUid]);
 
     useEffect(() => {
         if (isAiChat || !otherUserUid) return;
@@ -547,6 +549,7 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
     };
 
     const handleSaveNickname = async () => {
+        if (isAiChat) return;
         const chatDocRef = doc(db!, 'chats', chat.id);
         try {
             await updateDoc(chatDocRef, {
@@ -647,6 +650,12 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
                                 <Pencil className="mr-2 h-4 w-4" />
                                 <span>Contact Info</span>
                             </DropdownMenuItem>
+                             {!isAiChat && (
+                                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setNicknameDialogOpen(true); }}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    <span>Change Nickname</span>
+                                </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -707,6 +716,7 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
                             value={newNickname}
                             onChange={(e) => setNewNickname(e.target.value)}
                             className="col-span-3"
+                            placeholder={chat.name}
                         />
                     </div>
                 </div>
