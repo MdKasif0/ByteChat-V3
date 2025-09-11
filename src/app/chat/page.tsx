@@ -19,6 +19,7 @@ import { db } from '@/lib/firebase';
 import { LoadingScreen } from '@/components/loading-screen';
 import { usePeer } from '@/contexts/peer-context';
 import { NewChatDialog } from '@/components/chat/new-chat-dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const HomeHeader = ({ onNewChat }: { onNewChat: (chat: any) => void }) => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);

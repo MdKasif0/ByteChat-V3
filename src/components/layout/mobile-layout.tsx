@@ -13,7 +13,7 @@ type MobileLayoutProps = PropsWithChildren<{
 export function MobileLayout({ children, onChatSelect }: MobileLayoutProps) {
   return (
     <div className="flex h-screen w-full flex-col bg-background">
-      <div className="flex-1 overflow-y-auto pb-28">{children}</div>
+      <div className="flex-1 min-h-0">{children}</div>
       
       <div className="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-center p-4 gap-2">
         <BottomNav onChatSelect={onChatSelect} />
