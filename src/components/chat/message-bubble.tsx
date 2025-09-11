@@ -222,12 +222,12 @@ const MessageContent = ({ message, isMe, onMediaClick }: { message: Message; isM
              return (
                  <div className="relative">
                     <div onClick={handleMediaClick} className="relative max-w-xs group/media cursor-pointer">
-                        <img
+                         <video
                             src={blobUrl!}
-                            alt={message.fileName || "Sent video"}
+                            controls
                             className="rounded-lg w-full bg-black"
-                        />
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/media:opacity-100 transition-opacity flex items-center justify-center">
+                         />
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/media:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                             <Play className="h-10 w-10 text-white" />
                         </div>
                     </div>
