@@ -1,4 +1,3 @@
-
 'use client'
 
 import { UserAvatar } from "@/components/user-avatar";
@@ -10,6 +9,7 @@ import type { UserProfile } from "@/contexts/auth-context";
 import { addDoc, collection, doc, serverTimestamp, updateDoc, writeBatch, query, where, getDocs, onSnapshot, setDoc, orderBy, Timestamp, writeBatch as firestoreWriteBatch, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -73,6 +73,7 @@ const SelectionHeader = ({ count, onCancel, onDelete, onEdit }: { count: number;
 
 
 export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
+    const router = useRouter();
     const isAiChat = chat.id === 'ai-assistant';
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
@@ -538,10 +539,10 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
     };
 
 
-    const handleOpenNicknameDialog = () => {
-        if(isAiChat) return;
-        setNewNickname(displayName);
-        setNicknameDialogOpen(true);
+    const handleHeaderClick = () => {
+        if (!isAiChat && otherUser) {
+            router.push(`/chat/info/${otherUser.uid}`);
+        }
     };
 
     const handleSaveNickname = async () => {
@@ -615,18 +616,20 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
                   <Button variant="ghost" size="icon" onClick={onBack} className="mr-2 h-10 w-10 rounded-full">
                     <ChevronLeft className="h-6 w-6" />
                   </Button>
-                  <UserAvatar 
-                     name={displayName}
-                     avatarUrl={chat.avatar}
-                     status={isAiChat ? 'online' : otherUser?.status}
-                     className={cn("ring-2", isAiChat && !chat.avatar && "bg-primary/20 text-primary")}
-                  />
-                  <div className="ml-3 flex-1 overflow-hidden" onClick={handleOpenNicknameDialog}>
-                    <p className="font-semibold truncate cursor-pointer hover:underline">{displayName}</p>
-                    <div className="text-xs h-4">
-                      {getStatusText()}
-                    </div>
-                  </div>
+                  <button className="flex items-center flex-1 gap-3 overflow-hidden text-left" onClick={handleHeaderClick}>
+                     <UserAvatar 
+                         name={displayName}
+                         avatarUrl={chat.avatar}
+                         status={isAiChat ? 'online' : otherUser?.status}
+                         className={cn("ring-2", isAiChat && !chat.avatar && "bg-primary/20 text-primary")}
+                      />
+                      <div className="flex-1 overflow-hidden">
+                        <p className="font-semibold truncate">{displayName}</p>
+                        <div className="text-xs h-4">
+                          {getStatusText()}
+                        </div>
+                      </div>
+                  </button>
                   <div className="ml-auto flex items-center gap-1">
                     {!isAiChat && (
                         <>
@@ -639,9 +642,9 @@ export function ChatView({ chat, currentUser, onBack }: ChatViewProps) {
                             <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-foreground"><MoreVertical /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                             <DropdownMenuItem onClick={handleOpenNicknameDialog}>
+                             <DropdownMenuItem onClick={handleHeaderClick}>
                                 <Pencil className="mr-2 h-4 w-4" />
-                                <span>Change Nickname</span>
+                                <span>Contact Info</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
