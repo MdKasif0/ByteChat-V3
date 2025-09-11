@@ -1,3 +1,4 @@
+
 'use client'
 import {
   Dialog,
@@ -117,7 +118,7 @@ export function NewChatDialog({ children, onChatSelect }: { children: React.Reac
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
                 {children}
             </DialogTrigger>
             <DialogContent className="sm:max-w-sm" onInteractOutside={(e) => { if (isSubmitting) e.preventDefault(); }} >

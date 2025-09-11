@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
-import { Search, MoreVertical, X, Users, Star, Settings, QrCode, Plus } from 'lucide-react';
+import { Search, MoreVertical, X, Users, Star, Settings, QrCode, UserPlus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChatList } from '@/components/chat/chat-list';
 import { ChatView } from '@/components/chat/chat-view';
@@ -84,11 +84,9 @@ const HomeHeader = ({ onNewChat }: { onNewChat: (chat: any) => void }) => {
                         transition={{ duration: 0.2 }}
                         className="flex items-center gap-1"
                     >
-                        <NewChatDialog onChatSelect={onNewChat}>
-                           <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
-                                <Plus className="h-5 w-5" />
-                            </Button>
-                        </NewChatDialog>
+                        <Button variant="outline" size="icon" className="rounded-full h-10 w-10" onClick={() => router.push('/settings/qrcode')}>
+                            <QrCode className="h-5 w-5" />
+                        </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
@@ -96,6 +94,12 @@ const HomeHeader = ({ onNewChat }: { onNewChat: (chat: any) => void }) => {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                                <NewChatDialog onChatSelect={onNewChat}>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        <UserPlus className="mr-2 h-4 w-4" />
+                                        <span>New Chat</span>
+                                    </DropdownMenuItem>
+                                </NewChatDialog>
                                 <DropdownMenuItem>
                                     <Users className="mr-2 h-4 w-4" />
                                     <span>New Group</span>
@@ -103,10 +107,6 @@ const HomeHeader = ({ onNewChat }: { onNewChat: (chat: any) => void }) => {
                                 <DropdownMenuItem>
                                     <Star className="mr-2 h-4 w-4" />
                                     <span>Starred Messages</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => router.push('/settings/qrcode')}>
-                                    <QrCode className="mr-2 h-4 w-4" />
-                                    <span>QR Code</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => router.push('/settings')}>
                                     <Settings className="mr-2 h-4 w-4" />
