@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -20,6 +19,7 @@ import { useAuth, UserProfile } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { db } from "@/lib/firebase"
 import { collection, query, where, getDocs, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore"
+import { AtSign, UserPlus } from "lucide-react"
 
 const formSchema = z.object({
   username: z.string().min(1, { message: "Username cannot be empty." }),
@@ -120,32 +120,40 @@ export function NewChatDialog({ children, onChatSelect }: { children: React.Reac
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => { if (isSubmitting) e.preventDefault(); }} >
-                <DialogHeader>
-                    <DialogTitle className="font-headline">Start a new chat</DialogTitle>
+            <DialogContent className="sm:max-w-sm" onInteractOutside={(e) => { if (isSubmitting) e.preventDefault(); }} >
+                <DialogHeader className="text-center items-center">
+                    <div className="mb-3 bg-primary/10 text-primary p-3 rounded-full">
+                        <UserPlus className="h-7 w-7" />
+                    </div>
+                    <DialogTitle className="font-headline text-2xl">Add new friend</DialogTitle>
                     <DialogDescription>
-                        Enter the unique username of the person you want to chat with.
+                        Enter your friend's unique username to start a conversation.
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                         <FormField
                             control={form.control}
                             name="username"
                             render={({ field }) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="username" className="text-right">
-                                        Username
-                                    </Label>
+                                <FormItem>
                                     <FormControl>
-                                        <Input id="username" placeholder="jane-cooper" className="col-span-3" {...field} />
+                                        <div className="relative">
+                                            <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                            <Input 
+                                                id="username" 
+                                                placeholder="jane_cooper" 
+                                                className="pl-10 h-12 text-base" 
+                                                {...field} 
+                                            />
+                                        </div>
                                     </FormControl>
-                                    <FormMessage className="col-span-4 text-right" />
+                                    <FormMessage className="text-center" />
                                 </FormItem>
                             )}
                         />
                         <DialogFooter>
-                            <Button type="submit" disabled={isSubmitting}>
+                            <Button type="submit" disabled={isSubmitting} className="w-full h-11 text-base">
                                 {isSubmitting ? 'Connecting...' : 'Connect'}
                             </Button>
                         </DialogFooter>
