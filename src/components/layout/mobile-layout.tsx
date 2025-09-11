@@ -1,4 +1,3 @@
-
 'use client';
 import type { PropsWithChildren } from 'react';
 import { BottomNav } from './bottom-nav';
@@ -13,8 +12,16 @@ type MobileLayoutProps = PropsWithChildren<{
 export function MobileLayout({ children, onChatSelect }: MobileLayoutProps) {
   return (
     <div className="flex h-screen w-full flex-col bg-background">
-      <div className="flex-1 overflow-y-auto pb-24">{children}</div>
-      <BottomNav onChatSelect={onChatSelect} />
+      <div className="flex-1 overflow-y-auto pb-28">{children}</div>
+      
+      <div className="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-center p-4 gap-2">
+        <BottomNav onChatSelect={onChatSelect} />
+        <NewChatDialog onChatSelect={onChatSelect}>
+            <Button size="icon" className="h-14 w-14 rounded-full bg-primary shadow-lg">
+                <Plus className="h-7 w-7" />
+            </Button>
+        </NewChatDialog>
+      </div>
     </div>
   );
 }

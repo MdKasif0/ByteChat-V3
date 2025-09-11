@@ -249,13 +249,6 @@ function ChatPageContent() {
                 </div>
             </main>
         </div>
-         <div className="fixed bottom-24 right-6 z-10">
-            <NewChatDialog onChatSelect={setActiveChat}>
-                <Button size="icon" className="rounded-2xl h-16 w-16 bg-primary shadow-lg">
-                    <Plus className="h-7 w-7" />
-                </Button>
-            </NewChatDialog>
-        </div>
     </MobileLayout>
   );
 }
