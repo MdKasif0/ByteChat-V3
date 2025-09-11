@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Phone, User } from 'lucide-react';
+import { Phone, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PremiumHomeIcon } from '../icons/premium-home-icon';
 import { PremiumStatusIcon } from '../icons/premium-status-icon';
@@ -11,7 +11,7 @@ const navItems = [
     { href: '/chat', icon: PremiumHomeIcon, label: 'Chat' },
     { href: '/updates', icon: PremiumStatusIcon, label: 'Updates' },
     { href: '/calls', icon: Phone, label: 'Calls' },
-    { href: '/settings', icon: User, label: 'Settings' },
+    { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export function BottomNav({ onChatSelect }: { onChatSelect: (chat: any) => void; }) {
