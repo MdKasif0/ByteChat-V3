@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Camera, Plus } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
-import { NewChatDialog } from '@/components/chat/new-chat-dialog';
 
 // Mock data for statuses
 const recentUpdates = [
@@ -101,13 +100,6 @@ export default function UpdatesPage() {
                     </div>
                 </div>
             </main>
-             <div className="fixed bottom-24 right-6 z-10">
-                <NewChatDialog onChatSelect={handleChatSelect}>
-                    <Button size="icon" className="rounded-2xl h-16 w-16 bg-primary shadow-lg">
-                        <Plus className="h-7 w-7" />
-                    </Button>
-                </NewChatDialog>
-            </div>
         </MobileLayout>
     );
 }

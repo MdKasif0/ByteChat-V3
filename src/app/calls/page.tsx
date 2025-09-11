@@ -15,7 +15,6 @@ import { LottieAnimation } from '@/components/lottie-animation';
 import { cn } from '@/lib/utils';
 import { formatCallTimestamp } from '@/lib/date-utils';
 import { useRouter } from 'next/navigation';
-import { NewChatDialog } from '@/components/chat/new-chat-dialog';
 
 interface CallLog {
     id: string;
@@ -151,17 +150,6 @@ export default function CallsPage() {
             </>
         )}
       </main>
-
-        <div className="fixed bottom-24 right-6 z-10">
-             <NewChatDialog onChatSelect={handleChatSelect}>
-                <Button size="icon" className="rounded-2xl h-16 w-16 bg-green-500 hover:bg-green-600 shadow-lg">
-                    <div className="relative h-full w-full flex items-center justify-center">
-                        <Phone className="h-7 w-7" />
-                        <Plus className="h-4 w-4 absolute top-2 right-2" />
-                    </div>
-                </Button>
-            </NewChatDialog>
-        </div>
     </MobileLayout>
   );
 }
