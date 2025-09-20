@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://bytechat-v3.netlify.app/bytechat-logo.png" alt="ByteChat Logo" width="120"/>
+  <img src="public/bytechat-logo.png" alt="ByteChat Logo" width="120"/>
 </p>
 
 <h1 align="center">ByteChat</h1>
